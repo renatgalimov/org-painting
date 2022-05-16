@@ -1,1 +1,51 @@
-{"class":"painting","title":"Randy Rhoads painting","todo-list":[{"class":"todo","title":"Randy looks standing straight","state":"todo"},{"class":"todo","title":"Guitar doesn't look laying on Randy's pelvis","state":"todo"},{"class":"todo","title":"No shadow below the left leg","state":"todo"},{"class":"todo","title":"No depth of the right hand","state":"todo"},{"class":"todo","title":"Make right leg a little wider","state":"done","images":[{"class":"image","path":"data/EB/1B4E0F-95ED-4947-AB29-09233D42274F/IMG_20220505_065131.jpg"},{"class":"image","path":"data/EB/1B4E0F-95ED-4947-AB29-09233D42274F/IMG_20220505_071644.jpg"}]}]}
+{
+  "class": "painting",
+  "title": "Randy Rhoads painting",
+  "todo-list": [
+    {
+      "class": "todo",
+      "title": "Randy looks standing straight",
+      "state": "todo"
+    },
+    {
+      "class": "todo",
+      "title": "Guitar doesn't look laying on Randy's pelvis",
+      "state": "todo",
+      "images": [
+        {
+          "class": "image",
+          "path": "data/EB/1B4E0F-95ED-4947-AB29-09233D42274F/IMG_20220505_071644.jpg"
+        },
+        {
+          "class": "image",
+          "path": "data/EB/1B4E0F-95ED-4947-AB29-09233D42274F/IMG_20220510_082415.jpg"
+        }
+      ]
+    },
+    {
+      "class": "todo",
+      "title": "No shadow below the left leg",
+      "state": "todo"
+    },
+    {
+      "class": "todo",
+      "title": "No depth of the right hand",
+      "state": "todo"
+    },
+    {
+      "class": "todo",
+      "title": "Make right leg a little wider",
+      "state": "done",
+      "images": [
+        {
+          "class": "image",
+          "path": "data/EB/1B4E0F-95ED-4947-AB29-09233D42274F/IMG_20220505_065131.jpg"
+        },
+        {
+          "class": "image",
+          "path": "data/EB/1B4E0F-95ED-4947-AB29-09233D42274F/IMG_20220505_071644.jpg"
+        }
+      ]
+    }
+  ]
+}

@@ -24,12 +24,14 @@
 
 <body>
   <!-- Add your site or application content here -->
-  <p>Hello world! This is HTML5 Boilerplate.</p>
   <script src="js/vendor/modernizr-3.11.2.min.js"></script>
-  <script src="js/project.js"></script>
+  <script src="js/Projects.js"></script>
   <div id="app"></div>
   <script>
-   Elm.Projects.embed(document.getElementById('app'))
+   Elm.Projects.init({
+       node: document.getElementById('app'),
+       flags: window.location.href
+   });
   </script>
   <!-- Google Analytics: change UA-XXXXX-Y to be your site's ID. -->
   <!-- <script>
