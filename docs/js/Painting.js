@@ -5041,6 +5041,23 @@ var _Regex_splitAtMost = F3(function(n, re, str)
 var _Regex_infinity = Infinity;
 
 
+function _Url_percentEncode(string)
+{
+	return encodeURIComponent(string);
+}
+
+function _Url_percentDecode(string)
+{
+	try
+	{
+		return $elm$core$Maybe$Just(decodeURIComponent(string));
+	}
+	catch (e)
+	{
+		return $elm$core$Maybe$Nothing;
+	}
+}
+
 
 // SEND REQUEST
 
@@ -5214,23 +5231,6 @@ function _Http_track(router, xhr, tracker)
 			size: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
 		}))));
 	});
-}
-
-function _Url_percentEncode(string)
-{
-	return encodeURIComponent(string);
-}
-
-function _Url_percentDecode(string)
-{
-	try
-	{
-		return $elm$core$Maybe$Just(decodeURIComponent(string));
-	}
-	catch (e)
-	{
-		return $elm$core$Maybe$Nothing;
-	}
 }var $elm$core$Basics$False = {$: 'False'};
 var $savardd$elm_time_travel$TimeTravel$Browser$defaultConfig = {startMinimized: false, startToLeft: false};
 var $elm$core$Basics$always = F2(
@@ -15088,29 +15088,300 @@ var $savardd$elm_time_travel$TimeTravel$Browser$element = F4(
 				view: options.view
 			});
 	});
-var $author$project$Projects$GotDirectory = function (a) {
-	return {$: 'GotDirectory', a: a};
-};
-var $author$project$Projects$Directory = function (paintings) {
-	return {paintings: paintings};
-};
-var $author$project$Projects$PaintingLink = F2(
-	function (title, location) {
-		return {location: location, title: title};
+var $elm$core$Maybe$andThen = F2(
+	function (callback, maybeValue) {
+		if (maybeValue.$ === 'Just') {
+			var value = maybeValue.a;
+			return callback(value);
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
 	});
-var $author$project$Projects$paintingLinkDecoder = A3(
-	$elm$json$Json$Decode$map2,
-	$author$project$Projects$PaintingLink,
-	A2($elm$json$Json$Decode$field, 'title', $elm$json$Json$Decode$string),
-	A2($elm$json$Json$Decode$field, 'path', $elm$json$Json$Decode$string));
-var $author$project$Projects$directoryDecoder = A2(
+var $elm_community$maybe_extra$Maybe$Extra$join = function (mx) {
+	if (mx.$ === 'Just') {
+		var x = mx.a;
+		return x;
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$url$Url$Parser$State = F5(
+	function (visited, unvisited, params, frag, value) {
+		return {frag: frag, params: params, unvisited: unvisited, value: value, visited: visited};
+	});
+var $elm$url$Url$Parser$getFirstMatch = function (states) {
+	getFirstMatch:
+	while (true) {
+		if (!states.b) {
+			return $elm$core$Maybe$Nothing;
+		} else {
+			var state = states.a;
+			var rest = states.b;
+			var _v1 = state.unvisited;
+			if (!_v1.b) {
+				return $elm$core$Maybe$Just(state.value);
+			} else {
+				if ((_v1.a === '') && (!_v1.b.b)) {
+					return $elm$core$Maybe$Just(state.value);
+				} else {
+					var $temp$states = rest;
+					states = $temp$states;
+					continue getFirstMatch;
+				}
+			}
+		}
+	}
+};
+var $elm$url$Url$Parser$removeFinalEmpty = function (segments) {
+	if (!segments.b) {
+		return _List_Nil;
+	} else {
+		if ((segments.a === '') && (!segments.b.b)) {
+			return _List_Nil;
+		} else {
+			var segment = segments.a;
+			var rest = segments.b;
+			return A2(
+				$elm$core$List$cons,
+				segment,
+				$elm$url$Url$Parser$removeFinalEmpty(rest));
+		}
+	}
+};
+var $elm$url$Url$Parser$preparePath = function (path) {
+	var _v0 = A2($elm$core$String$split, '/', path);
+	if (_v0.b && (_v0.a === '')) {
+		var segments = _v0.b;
+		return $elm$url$Url$Parser$removeFinalEmpty(segments);
+	} else {
+		var segments = _v0;
+		return $elm$url$Url$Parser$removeFinalEmpty(segments);
+	}
+};
+var $elm$url$Url$Parser$addToParametersHelp = F2(
+	function (value, maybeList) {
+		if (maybeList.$ === 'Nothing') {
+			return $elm$core$Maybe$Just(
+				_List_fromArray(
+					[value]));
+		} else {
+			var list = maybeList.a;
+			return $elm$core$Maybe$Just(
+				A2($elm$core$List$cons, value, list));
+		}
+	});
+var $elm$url$Url$percentDecode = _Url_percentDecode;
+var $elm$url$Url$Parser$addParam = F2(
+	function (segment, dict) {
+		var _v0 = A2($elm$core$String$split, '=', segment);
+		if ((_v0.b && _v0.b.b) && (!_v0.b.b.b)) {
+			var rawKey = _v0.a;
+			var _v1 = _v0.b;
+			var rawValue = _v1.a;
+			var _v2 = $elm$url$Url$percentDecode(rawKey);
+			if (_v2.$ === 'Nothing') {
+				return dict;
+			} else {
+				var key = _v2.a;
+				var _v3 = $elm$url$Url$percentDecode(rawValue);
+				if (_v3.$ === 'Nothing') {
+					return dict;
+				} else {
+					var value = _v3.a;
+					return A3(
+						$elm$core$Dict$update,
+						key,
+						$elm$url$Url$Parser$addToParametersHelp(value),
+						dict);
+				}
+			}
+		} else {
+			return dict;
+		}
+	});
+var $elm$url$Url$Parser$prepareQuery = function (maybeQuery) {
+	if (maybeQuery.$ === 'Nothing') {
+		return $elm$core$Dict$empty;
+	} else {
+		var qry = maybeQuery.a;
+		return A3(
+			$elm$core$List$foldr,
+			$elm$url$Url$Parser$addParam,
+			$elm$core$Dict$empty,
+			A2($elm$core$String$split, '&', qry));
+	}
+};
+var $elm$url$Url$Parser$parse = F2(
+	function (_v0, url) {
+		var parser = _v0.a;
+		return $elm$url$Url$Parser$getFirstMatch(
+			parser(
+				A5(
+					$elm$url$Url$Parser$State,
+					_List_Nil,
+					$elm$url$Url$Parser$preparePath(url.path),
+					$elm$url$Url$Parser$prepareQuery(url.query),
+					url.fragment,
+					$elm$core$Basics$identity)));
+	});
+var $elm$url$Url$Parser$Parser = function (a) {
+	return {$: 'Parser', a: a};
+};
+var $elm$url$Url$Parser$query = function (_v0) {
+	var queryParser = _v0.a;
+	return $elm$url$Url$Parser$Parser(
+		function (_v1) {
+			var visited = _v1.visited;
+			var unvisited = _v1.unvisited;
+			var params = _v1.params;
+			var frag = _v1.frag;
+			var value = _v1.value;
+			return _List_fromArray(
+				[
+					A5(
+					$elm$url$Url$Parser$State,
+					visited,
+					unvisited,
+					params,
+					frag,
+					value(
+						queryParser(params)))
+				]);
+		});
+};
+var $elm$url$Url$Parser$s = function (str) {
+	return $elm$url$Url$Parser$Parser(
+		function (_v0) {
+			var visited = _v0.visited;
+			var unvisited = _v0.unvisited;
+			var params = _v0.params;
+			var frag = _v0.frag;
+			var value = _v0.value;
+			if (!unvisited.b) {
+				return _List_Nil;
+			} else {
+				var next = unvisited.a;
+				var rest = unvisited.b;
+				return _Utils_eq(next, str) ? _List_fromArray(
+					[
+						A5(
+						$elm$url$Url$Parser$State,
+						A2($elm$core$List$cons, next, visited),
+						rest,
+						params,
+						frag,
+						value)
+					]) : _List_Nil;
+			}
+		});
+};
+var $elm$url$Url$Parser$slash = F2(
+	function (_v0, _v1) {
+		var parseBefore = _v0.a;
+		var parseAfter = _v1.a;
+		return $elm$url$Url$Parser$Parser(
+			function (state) {
+				return A2(
+					$elm$core$List$concatMap,
+					parseAfter,
+					parseBefore(state));
+			});
+	});
+var $elm$url$Url$Parser$Internal$Parser = function (a) {
+	return {$: 'Parser', a: a};
+};
+var $elm$url$Url$Parser$Query$custom = F2(
+	function (key, func) {
+		return $elm$url$Url$Parser$Internal$Parser(
+			function (dict) {
+				return func(
+					A2(
+						$elm$core$Maybe$withDefault,
+						_List_Nil,
+						A2($elm$core$Dict$get, key, dict)));
+			});
+	});
+var $elm$url$Url$Parser$Query$string = function (key) {
+	return A2(
+		$elm$url$Url$Parser$Query$custom,
+		key,
+		function (stringList) {
+			if (stringList.b && (!stringList.b.b)) {
+				var str = stringList.a;
+				return $elm$core$Maybe$Just(str);
+			} else {
+				return $elm$core$Maybe$Nothing;
+			}
+		});
+};
+var $author$project$Painting$getJsonPath = function (urlString) {
+	return $elm_community$maybe_extra$Maybe$Extra$join(
+		A2(
+			$elm$core$Maybe$andThen,
+			$elm$url$Url$Parser$parse(
+				A2(
+					$elm$url$Url$Parser$slash,
+					$elm$url$Url$Parser$s('painting.html'),
+					$elm$url$Url$Parser$query(
+						$elm$url$Url$Parser$Query$string('json')))),
+			$elm$url$Url$fromString(urlString)));
+};
+var $author$project$Painting$GotPainting = function (a) {
+	return {$: 'GotPainting', a: a};
+};
+var $author$project$Painting$Painting = F2(
+	function (title, todos) {
+		return {title: title, todos: todos};
+	});
+var $author$project$Painting$Todo = F3(
+	function (title, state, images) {
+		return {images: images, state: state, title: title};
+	});
+var $author$project$Painting$Image = function (path) {
+	return {path: path};
+};
+var $author$project$Painting$decodeImage = A2(
 	$elm$json$Json$Decode$map,
-	$author$project$Projects$Directory,
+	$author$project$Painting$Image,
+	A2($elm$json$Json$Decode$field, 'path', $elm$json$Json$Decode$string));
+var $elm$json$Json$Decode$andThen = _Json_andThen;
+var $author$project$Painting$TodoDone = {$: 'TodoDone'};
+var $author$project$Painting$TodoTodo = {$: 'TodoTodo'};
+var $elm$json$Json$Decode$fail = _Json_fail;
+var $author$project$Painting$todoStateToString = function (todoStateStr) {
+	switch (todoStateStr) {
+		case 'todo':
+			return $elm$json$Json$Decode$succeed($author$project$Painting$TodoTodo);
+		case 'done':
+			return $elm$json$Json$Decode$succeed($author$project$Painting$TodoDone);
+		default:
+			return $elm$json$Json$Decode$fail('Unknown todo state: \"' + (todoStateStr + '\"'));
+	}
+};
+var $author$project$Painting$decodeTodoState = A2($elm$json$Json$Decode$andThen, $author$project$Painting$todoStateToString, $elm$json$Json$Decode$string);
+var $elm$json$Json$Decode$oneOf = _Json_oneOf;
+var $author$project$Painting$decodeTodo = A4(
+	$elm$json$Json$Decode$map3,
+	$author$project$Painting$Todo,
+	A2($elm$json$Json$Decode$field, 'title', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'state', $author$project$Painting$decodeTodoState),
+	$elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[
+				A2(
+				$elm$json$Json$Decode$field,
+				'images',
+				$elm$json$Json$Decode$list($author$project$Painting$decodeImage)),
+				$elm$json$Json$Decode$succeed(_List_Nil)
+			])));
+var $author$project$Painting$decodePainting = A3(
+	$elm$json$Json$Decode$map2,
+	$author$project$Painting$Painting,
+	A2($elm$json$Json$Decode$field, 'title', $elm$json$Json$Decode$string),
 	A2(
 		$elm$json$Json$Decode$field,
-		'paintings',
-		$elm$json$Json$Decode$list($author$project$Projects$paintingLinkDecoder)));
-var $author$project$Projects$directoryFile = 'index.json';
+		'todo-list',
+		$elm$json$Json$Decode$list($author$project$Painting$decodeTodo)));
 var $elm$http$Http$BadStatus_ = F2(
 	function (a, b) {
 		return {$: 'BadStatus_', a: a, b: b};
@@ -15359,114 +15630,73 @@ var $elm$http$Http$get = function (r) {
 	return $elm$http$Http$request(
 		{body: $elm$http$Http$emptyBody, expect: r.expect, headers: _List_Nil, method: 'GET', timeout: $elm$core$Maybe$Nothing, tracker: $elm$core$Maybe$Nothing, url: r.url});
 };
-var $author$project$Projects$getDirectory = $elm$http$Http$get(
-	{
-		expect: A2($elm$http$Http$expectJson, $author$project$Projects$GotDirectory, $author$project$Projects$directoryDecoder),
-		url: $author$project$Projects$directoryFile
+var $author$project$Painting$getPainting = function (jsonPath) {
+	return $elm$http$Http$get(
+		{
+			expect: A2($elm$http$Http$expectJson, $author$project$Painting$GotPainting, $author$project$Painting$decodePainting),
+			url: jsonPath
+		});
+};
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
 	});
-var $author$project$Projects$init = function (_v0) {
+var $author$project$Painting$init = function (location) {
 	return _Utils_Tuple2(
-		{paintings: _List_Nil},
-		$author$project$Projects$getDirectory);
+		{painting: $elm$core$Maybe$Nothing},
+		A2(
+			$elm$core$Maybe$withDefault,
+			$elm$core$Platform$Cmd$none,
+			A2(
+				$elm$core$Maybe$map,
+				$author$project$Painting$getPainting,
+				$author$project$Painting$getJsonPath(location))));
 };
 var $elm$core$Debug$toString = _Debug_toString;
-var $author$project$Projects$update = F2(
+var $author$project$Painting$update = F2(
 	function (msg, model) {
 		if (msg.a.$ === 'Ok') {
-			var directory = msg.a.a;
+			var painting = msg.a.a;
 			return _Utils_Tuple2(
 				_Utils_update(
 					model,
-					{paintings: directory.paintings}),
+					{
+						painting: $elm$core$Maybe$Just(painting)
+					}),
 				$elm$core$Platform$Cmd$none);
 		} else {
 			return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 		}
 	});
-var $elm$html$Html$table = _VirtualDom_node('table');
-var $elm$url$Url$Builder$toQueryPair = function (_v0) {
-	var key = _v0.a;
-	var value = _v0.b;
-	return key + ('=' + value);
+var $author$project$Painting$viewPainting = function (painting) {
+	return $elm$html$Html$text(painting.title);
 };
-var $elm$url$Url$Builder$toQuery = function (parameters) {
-	if (!parameters.b) {
-		return '';
+var $author$project$Painting$view = function (model) {
+	var _v0 = model.painting;
+	if (_v0.$ === 'Just') {
+		var painting = _v0.a;
+		return $author$project$Painting$viewPainting(painting);
 	} else {
-		return '?' + A2(
-			$elm$core$String$join,
-			'&',
-			A2($elm$core$List$map, $elm$url$Url$Builder$toQueryPair, parameters));
+		return $elm$html$Html$text('Waiting for painting to load...');
 	}
 };
-var $elm$url$Url$Builder$absolute = F2(
-	function (pathSegments, parameters) {
-		return '/' + (A2($elm$core$String$join, '/', pathSegments) + $elm$url$Url$Builder$toQuery(parameters));
-	});
-var $author$project$Projects$paintingUrl = 'painting.html';
-var $elm$url$Url$Builder$QueryParameter = F2(
-	function (a, b) {
-		return {$: 'QueryParameter', a: a, b: b};
-	});
-var $elm$url$Url$percentEncode = _Url_percentEncode;
-var $elm$url$Url$Builder$string = F2(
-	function (key, value) {
-		return A2(
-			$elm$url$Url$Builder$QueryParameter,
-			$elm$url$Url$percentEncode(key),
-			$elm$url$Url$percentEncode(value));
-	});
-var $elm$html$Html$td = _VirtualDom_node('td');
-var $elm$html$Html$tr = _VirtualDom_node('tr');
-var $author$project$Projects$viewPaintingLink = function (paintingLink) {
-	var fullPantingLink = A2(
-		$elm$url$Url$Builder$absolute,
-		_List_fromArray(
-			[$author$project$Projects$paintingUrl]),
-		_List_fromArray(
-			[
-				A2($elm$url$Url$Builder$string, 'json', paintingLink.location)
-			]));
-	return A2(
-		$elm$html$Html$tr,
-		_List_Nil,
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$td,
-				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$a,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$href(fullPantingLink)
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text(paintingLink.title)
-							]))
-					]))
-			]));
-};
-var $author$project$Projects$view = function (model) {
-	return A2(
-		$elm$html$Html$table,
-		_List_Nil,
-		A2($elm$core$List$map, $author$project$Projects$viewPaintingLink, model.paintings));
-};
-var $author$project$Projects$main = A4(
+var $author$project$Painting$main = A4(
 	$savardd$elm_time_travel$TimeTravel$Browser$element,
 	$elm$core$Debug$toString,
 	$elm$core$Debug$toString,
 	$savardd$elm_time_travel$TimeTravel$Browser$defaultConfig,
 	{
-		init: $author$project$Projects$init,
+		init: $author$project$Painting$init,
 		subscriptions: function (_v0) {
 			return $elm$core$Platform$Sub$none;
 		},
-		update: $author$project$Projects$update,
-		view: $author$project$Projects$view
+		update: $author$project$Painting$update,
+		view: $author$project$Painting$view
 	});
-_Platform_export({'Projects':{'init':$author$project$Projects$main($elm$json$Json$Decode$string)({"versions":{"elm":"0.19.1"},"types":{"message":"TimeTravel.Browser.Msg Projects.Msg","aliases":{"Projects.Directory":{"args":[],"type":"{ paintings : List.List Projects.PaintingLink }"},"Projects.PaintingLink":{"args":[],"type":"{ title : String.String, location : String.String }"},"TimeTravel.Internal.Parser.AST.ASTId":{"args":[],"type":"String.String"},"TimeTravel.Internal.Model.Id":{"args":[],"type":"Basics.Int"},"TimeTravel.Internal.Model.IncomingMsg":{"args":[],"type":"{ type_ : String.String, settings : String.String }"}},"unions":{"Projects.Msg":{"args":[],"tags":{"GotDirectory":["Result.Result Http.Error Projects.Directory"]}},"TimeTravel.Browser.Msg":{"args":["msg"],"tags":{"DebuggerMsg":["TimeTravel.Internal.Model.Msg"],"UserMsg":["( Maybe.Maybe Basics.Int, msg )"]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Basics.Int"],"BadBody":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"TimeTravel.Internal.Model.Msg":{"args":[],"tags":{"ToggleSync":[],"ToggleExpand":[],"ToggleFilter":["String.String"],"SelectMsg":["TimeTravel.Internal.Model.Id"],"Resync":[],"ToggleLayout":[],"Receive":["TimeTravel.Internal.Model.IncomingMsg"],"ToggleModelDetail":["Basics.Bool"],"ToggleModelTree":["TimeTravel.Internal.Parser.AST.ASTId"],"ToggleMinimize":[],"InputModelFilter":["String.String"],"SelectModelFilter":["TimeTravel.Internal.Parser.AST.ASTId"],"SelectModelFilterWatch":["TimeTravel.Internal.Parser.AST.ASTId"],"StopWatching":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"String.String":{"args":[],"tags":{"String":[]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}}}}})}});}(this));
+_Platform_export({'Painting':{'init':$author$project$Painting$main($elm$json$Json$Decode$string)({"versions":{"elm":"0.19.1"},"types":{"message":"TimeTravel.Browser.Msg Painting.Msg","aliases":{"Painting.Image":{"args":[],"type":"{ path : String.String }"},"Painting.Painting":{"args":[],"type":"{ title : String.String, todos : List.List Painting.Todo }"},"Painting.Todo":{"args":[],"type":"{ title : String.String, state : Painting.TodoState, images : List.List Painting.Image }"},"TimeTravel.Internal.Parser.AST.ASTId":{"args":[],"type":"String.String"},"TimeTravel.Internal.Model.Id":{"args":[],"type":"Basics.Int"},"TimeTravel.Internal.Model.IncomingMsg":{"args":[],"type":"{ type_ : String.String, settings : String.String }"}},"unions":{"Painting.Msg":{"args":[],"tags":{"GotPainting":["Result.Result Http.Error Painting.Painting"]}},"TimeTravel.Browser.Msg":{"args":["msg"],"tags":{"DebuggerMsg":["TimeTravel.Internal.Model.Msg"],"UserMsg":["( Maybe.Maybe Basics.Int, msg )"]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Basics.Int"],"BadBody":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"TimeTravel.Internal.Model.Msg":{"args":[],"tags":{"ToggleSync":[],"ToggleExpand":[],"ToggleFilter":["String.String"],"SelectMsg":["TimeTravel.Internal.Model.Id"],"Resync":[],"ToggleLayout":[],"Receive":["TimeTravel.Internal.Model.IncomingMsg"],"ToggleModelDetail":["Basics.Bool"],"ToggleModelTree":["TimeTravel.Internal.Parser.AST.ASTId"],"ToggleMinimize":[],"InputModelFilter":["String.String"],"SelectModelFilter":["TimeTravel.Internal.Parser.AST.ASTId"],"SelectModelFilterWatch":["TimeTravel.Internal.Parser.AST.ASTId"],"StopWatching":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"String.String":{"args":[],"tags":{"String":[]}},"Painting.TodoState":{"args":[],"tags":{"TodoTodo":[],"TodoDone":[]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}}}}})}});}(this));

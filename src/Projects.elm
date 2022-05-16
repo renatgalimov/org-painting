@@ -12,7 +12,8 @@ import Url.Builder
 -- CONSTANTS
 
 
-pantingUrl =
+paintingUrl : String
+paintingUrl =
     "painting.html"
 
 
@@ -31,8 +32,8 @@ main =
 -- INIT
 
 
-init : ( Model, Cmd Msg )
-init =
+init : String -> ( Model, Cmd Msg )
+init _ =
     ( { paintings = [] }
     , getDirectory
     )
@@ -46,7 +47,7 @@ viewPaintingLink : PaintingLink -> Html msg
 viewPaintingLink paintingLink =
     let
         fullPantingLink =
-            Url.Builder.absolute [ "painting.html" ] [ Url.Builder.string "json" paintingLink.location ]
+            Url.Builder.absolute [ paintingUrl ] [ Url.Builder.string "json" paintingLink.location ]
     in
     tr []
         [ td [] [ a [ href fullPantingLink ] [ text paintingLink.title ] ]

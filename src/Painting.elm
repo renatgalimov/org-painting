@@ -1,32 +1,41 @@
 module Painting exposing (main)
 
-import Http
-import Json.Decode exposing (Decoder, andThen, fail, field, list, string, succeed)
-import Json.Decode.Extra exposing (fromResult)
-import Maybe exposing (andThen)
+import Html exposing (Html, text)
+import Http exposing (expectJson)
+import Json.Decode exposing (Decoder, fail, field, list, maybe, oneOf, string, succeed)
+import Maybe
+import Maybe.Extra
 import TimeTravel.Browser as TimeTravel exposing (defaultConfig)
 import Url
-import Url.Parser exposing (parse)
+import Url.Parser exposing ((</>), (<?>), parse, query, s, top)
 import Url.Parser.Query as Query
 
 
+main =
+    TimeTravel.element Debug.toString
+        Debug.toString
+        defaultConfig
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = \_ -> Sub.none
+        }
 
--- main =
---     TimeTravel.element Debug.toString
---         Debug.toString
---         { init = init
---         }
 
-
-getJsonPath : String -> unknown
+getJsonPath : String -> Maybe String
 getJsonPath urlString =
-    Url.fromString url
-        |> Maybe.andThen Url.Parser.parse (Query.string "json")
+    Url.fromString urlString
+        |> Maybe.andThen (parse (s "painting.html" </> query (Query.string "json")))
+        |> Maybe.Extra.join
 
 
 init : String -> ( Model, Cmd Msg )
 init location =
-    ( { painting = Nothing }, Cmd.none )
+    ( { painting = Nothing }
+    , getJsonPath location
+        |> Maybe.map getPainting
+        |> Maybe.withDefault Cmd.none
+    )
 
 
 type Msg
@@ -77,7 +86,7 @@ todoStateToString todoStateStr =
 decodeTodoState : Decoder TodoState
 decodeTodoState =
     string
-        |> andThen todoStateToString
+        |> Json.Decode.andThen todoStateToString
 
 
 decodeTodo : Decoder Todo
@@ -85,7 +94,11 @@ decodeTodo =
     Json.Decode.map3 Todo
         (field "title" string)
         (field "state" decodeTodoState)
-        (field "images" (list decodeImage))
+        (oneOf
+            [ field "images" (list decodeImage)
+            , succeed []
+            ]
+        )
 
 
 decodePainting : Decoder Painting
@@ -95,13 +108,47 @@ decodePainting =
         (field "todo-list" (list decodeTodo))
 
 
-getPainting =
+getPainting : String -> Cmd Msg
+getPainting jsonPath =
     Http.get
-        { url = paintingFile
-        , expect = expectJson GotDirectory directoryDecoder
+        { url = jsonPath
+        , expect = expectJson GotPainting decodePainting
         }
 
 
 type alias Model =
     { painting : Maybe Painting
     }
+
+
+
+-- VIEW
+
+
+viewPainting : Painting -> Html msg
+viewPainting painting =
+    text painting.title
+
+
+view : Model -> Html msg
+view model =
+    case model.painting of
+        Just painting ->
+            viewPainting painting
+
+        Nothing ->
+            text "Waiting for painting to load..."
+
+
+
+-- UPDATE
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        GotPainting (Ok painting) ->
+            ( { model | painting = Just painting }, Cmd.none )
+
+        GotPainting (Err _) ->
+            ( model, Cmd.none )

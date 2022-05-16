@@ -3,7 +3,7 @@ var elm = require('gulp-elm'),
     webserver = require('gulp-webserver');
 
 function runElm() {
-    return src('src/Projects.elm')
+    return src('src/*.elm')
         .pipe(elm({ debug: true }))
         .pipe(dest('docs/js/'));
 };
