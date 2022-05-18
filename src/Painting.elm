@@ -1,13 +1,15 @@
 module Painting exposing (main)
 
-import Html exposing (Html, text)
+import Html exposing (Html, div, img, text)
+import Html.Attributes exposing (class, src, width)
 import Http exposing (expectJson)
-import Json.Decode exposing (Decoder, fail, field, list, maybe, oneOf, string, succeed)
+import Json.Decode exposing (Decoder, fail, field, list, oneOf, string, succeed)
 import Maybe
 import Maybe.Extra
 import TimeTravel.Browser as TimeTravel exposing (defaultConfig)
 import Url
-import Url.Parser exposing ((</>), (<?>), parse, query, s, top)
+import Url.Builder
+import Url.Parser exposing ((</>), (<?>), parse, query, s)
 import Url.Parser.Query as Query
 
 
@@ -22,6 +24,16 @@ main =
         }
 
 
+dirname : String -> String
+dirname input =
+    String.split "/" input
+        |> List.reverse
+        |> List.tail
+        |> Maybe.withDefault []
+        |> List.reverse
+        |> String.join "/"
+
+
 getJsonPath : String -> Maybe String
 getJsonPath urlString =
     Url.fromString urlString
@@ -31,8 +43,17 @@ getJsonPath urlString =
 
 init : String -> ( Model, Cmd Msg )
 init location =
-    ( { painting = Nothing }
-    , getJsonPath location
+    let
+        jsonPath =
+            getJsonPath location
+    in
+    ( { painting = Nothing
+      , directory =
+            jsonPath
+                |> Maybe.withDefault "/"
+                |> dirname
+      }
+    , jsonPath
         |> Maybe.map getPainting
         |> Maybe.withDefault Cmd.none
     )
@@ -42,9 +63,9 @@ type Msg
     = GotPainting (Result Http.Error Painting)
 
 
-type TodoState
-    = TodoTodo
-    | TodoDone
+type alias Image =
+    { path : String
+    }
 
 
 type alias Todo =
@@ -54,9 +75,19 @@ type alias Todo =
     }
 
 
-type alias Image =
-    { path : String
-    }
+type TodoState
+    = TodoTodo
+    | TodoDone
+
+
+todoStateToString : TodoState -> String
+todoStateToString todoState =
+    case todoState of
+        TodoTodo ->
+            "todo"
+
+        TodoDone ->
+            "done"
 
 
 type alias Painting =
@@ -70,8 +101,8 @@ decodeImage =
     Json.Decode.map Image (field "path" string)
 
 
-todoStateToString : String -> Decoder TodoState
-todoStateToString todoStateStr =
+todoStateFromString : String -> Decoder TodoState
+todoStateFromString todoStateStr =
     case todoStateStr of
         "todo" ->
             succeed TodoTodo
@@ -86,7 +117,7 @@ todoStateToString todoStateStr =
 decodeTodoState : Decoder TodoState
 decodeTodoState =
     string
-        |> Json.Decode.andThen todoStateToString
+        |> Json.Decode.andThen todoStateFromString
 
 
 decodeTodo : Decoder Todo
@@ -118,6 +149,7 @@ getPainting jsonPath =
 
 type alias Model =
     { painting : Maybe Painting
+    , directory : String
     }
 
 
@@ -125,16 +157,43 @@ type alias Model =
 -- VIEW
 
 
-viewPainting : Painting -> Html msg
-viewPainting painting =
-    text painting.title
+viewImage : String -> Image -> Html msg
+viewImage directory image =
+    div [ class "image" ]
+        [ img [ src (Url.Builder.relative [ directory, image.path ] []), width 400 ] []
+        ]
+
+
+viewTodo : String -> Todo -> Html msg
+viewTodo directory todo =
+    let
+        todoStateStr =
+            todoStateToString todo.state
+    in
+    div [ class ("todo " ++ todoStateStr) ]
+        (text (todoStateStr ++ ": " ++ todo.title)
+            :: List.map (viewImage directory) todo.images
+        )
+
+
+viewTodoList : String -> List Todo -> Html msg
+viewTodoList directory todos =
+    div [ class "todos" ] (List.map (viewTodo directory) todos)
+
+
+viewPainting : String -> Painting -> Html msg
+viewPainting directory painting =
+    div [ class "painting" ]
+        [ text painting.title
+        , viewTodoList directory painting.todos
+        ]
 
 
 view : Model -> Html msg
 view model =
     case model.painting of
         Just painting ->
-            viewPainting painting
+            viewPainting model.directory painting
 
         Nothing ->
             text "Waiting for painting to load..."

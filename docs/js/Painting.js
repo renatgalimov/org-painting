@@ -15088,6 +15088,27 @@ var $savardd$elm_time_travel$TimeTravel$Browser$element = F4(
 				view: options.view
 			});
 	});
+var $elm$core$List$tail = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(xs);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $author$project$Painting$dirname = function (input) {
+	return A2(
+		$elm$core$String$join,
+		'/',
+		$elm$core$List$reverse(
+			A2(
+				$elm$core$Maybe$withDefault,
+				_List_Nil,
+				$elm$core$List$tail(
+					$elm$core$List$reverse(
+						A2($elm$core$String$split, '/', input))))));
+};
 var $elm$core$Maybe$andThen = F2(
 	function (callback, maybeValue) {
 		if (maybeValue.$ === 'Just') {
@@ -15348,7 +15369,7 @@ var $elm$json$Json$Decode$andThen = _Json_andThen;
 var $author$project$Painting$TodoDone = {$: 'TodoDone'};
 var $author$project$Painting$TodoTodo = {$: 'TodoTodo'};
 var $elm$json$Json$Decode$fail = _Json_fail;
-var $author$project$Painting$todoStateToString = function (todoStateStr) {
+var $author$project$Painting$todoStateFromString = function (todoStateStr) {
 	switch (todoStateStr) {
 		case 'todo':
 			return $elm$json$Json$Decode$succeed($author$project$Painting$TodoTodo);
@@ -15358,7 +15379,7 @@ var $author$project$Painting$todoStateToString = function (todoStateStr) {
 			return $elm$json$Json$Decode$fail('Unknown todo state: \"' + (todoStateStr + '\"'));
 	}
 };
-var $author$project$Painting$decodeTodoState = A2($elm$json$Json$Decode$andThen, $author$project$Painting$todoStateToString, $elm$json$Json$Decode$string);
+var $author$project$Painting$decodeTodoState = A2($elm$json$Json$Decode$andThen, $author$project$Painting$todoStateFromString, $elm$json$Json$Decode$string);
 var $elm$json$Json$Decode$oneOf = _Json_oneOf;
 var $author$project$Painting$decodeTodo = A4(
 	$elm$json$Json$Decode$map3,
@@ -15648,15 +15669,17 @@ var $elm$core$Maybe$map = F2(
 		}
 	});
 var $author$project$Painting$init = function (location) {
+	var jsonPath = $author$project$Painting$getJsonPath(location);
 	return _Utils_Tuple2(
-		{painting: $elm$core$Maybe$Nothing},
+		{
+			directory: $author$project$Painting$dirname(
+				A2($elm$core$Maybe$withDefault, '/', jsonPath)),
+			painting: $elm$core$Maybe$Nothing
+		},
 		A2(
 			$elm$core$Maybe$withDefault,
 			$elm$core$Platform$Cmd$none,
-			A2(
-				$elm$core$Maybe$map,
-				$author$project$Painting$getPainting,
-				$author$project$Painting$getJsonPath(location))));
+			A2($elm$core$Maybe$map, $author$project$Painting$getPainting, jsonPath)));
 };
 var $elm$core$Debug$toString = _Debug_toString;
 var $author$project$Painting$update = F2(
@@ -15674,14 +15697,121 @@ var $author$project$Painting$update = F2(
 			return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 		}
 	});
-var $author$project$Painting$viewPainting = function (painting) {
-	return $elm$html$Html$text(painting.title);
+var $author$project$Painting$todoStateToString = function (todoState) {
+	if (todoState.$ === 'TodoTodo') {
+		return 'todo';
+	} else {
+		return 'done';
+	}
 };
+var $elm$html$Html$img = _VirtualDom_node('img');
+var $elm$url$Url$Builder$toQueryPair = function (_v0) {
+	var key = _v0.a;
+	var value = _v0.b;
+	return key + ('=' + value);
+};
+var $elm$url$Url$Builder$toQuery = function (parameters) {
+	if (!parameters.b) {
+		return '';
+	} else {
+		return '?' + A2(
+			$elm$core$String$join,
+			'&',
+			A2($elm$core$List$map, $elm$url$Url$Builder$toQueryPair, parameters));
+	}
+};
+var $elm$url$Url$Builder$relative = F2(
+	function (pathSegments, parameters) {
+		return _Utils_ap(
+			A2($elm$core$String$join, '/', pathSegments),
+			$elm$url$Url$Builder$toQuery(parameters));
+	});
+var $elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
+var $elm$html$Html$Attributes$width = function (n) {
+	return A2(
+		_VirtualDom_attribute,
+		'width',
+		$elm$core$String$fromInt(n));
+};
+var $author$project$Painting$viewImage = F2(
+	function (directory, image) {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('image')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$img,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$src(
+							A2(
+								$elm$url$Url$Builder$relative,
+								_List_fromArray(
+									[directory, image.path]),
+								_List_Nil)),
+							$elm$html$Html$Attributes$width(400)
+						]),
+					_List_Nil)
+				]));
+	});
+var $author$project$Painting$viewTodo = F2(
+	function (directory, todo) {
+		var todoStateStr = $author$project$Painting$todoStateToString(todo.state);
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('todo ' + todoStateStr)
+				]),
+			A2(
+				$elm$core$List$cons,
+				$elm$html$Html$text(todoStateStr + (': ' + todo.title)),
+				A2(
+					$elm$core$List$map,
+					$author$project$Painting$viewImage(directory),
+					todo.images)));
+	});
+var $author$project$Painting$viewTodoList = F2(
+	function (directory, todos) {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('todos')
+				]),
+			A2(
+				$elm$core$List$map,
+				$author$project$Painting$viewTodo(directory),
+				todos));
+	});
+var $author$project$Painting$viewPainting = F2(
+	function (directory, painting) {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('painting')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text(painting.title),
+					A2($author$project$Painting$viewTodoList, directory, painting.todos)
+				]));
+	});
 var $author$project$Painting$view = function (model) {
 	var _v0 = model.painting;
 	if (_v0.$ === 'Just') {
 		var painting = _v0.a;
-		return $author$project$Painting$viewPainting(painting);
+		return A2($author$project$Painting$viewPainting, model.directory, painting);
 	} else {
 		return $elm$html$Html$text('Waiting for painting to load...');
 	}
