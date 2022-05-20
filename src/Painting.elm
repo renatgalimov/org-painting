@@ -1,9 +1,11 @@
-module Painting exposing (main)
+module Painting exposing (main, viewPainting)
 
-import Html exposing (Html, div, img, text)
+import Html exposing (Html, div, h1, h2, img, span, text)
 import Html.Attributes exposing (class, src, width)
+import Html.Events exposing (onClick)
 import Http exposing (expectJson)
 import Json.Decode exposing (Decoder, fail, field, list, oneOf, string, succeed)
+import List.Extra exposing (find)
 import Maybe
 import Maybe.Extra
 import TimeTravel.Browser as TimeTravel exposing (defaultConfig)
@@ -52,6 +54,8 @@ init location =
             jsonPath
                 |> Maybe.withDefault "/"
                 |> dirname
+      , currentTodo = Nothing
+      , imageWidget = Nothing
       }
     , jsonPath
         |> Maybe.map getPainting
@@ -61,6 +65,7 @@ init location =
 
 type Msg
     = GotPainting (Result Http.Error Painting)
+    | SelectTodo Todo
 
 
 type alias Image =
@@ -147,9 +152,17 @@ getPainting jsonPath =
         }
 
 
+type alias ImageWidget =
+    { currentImage : Image
+    , allImages : List Image
+    }
+
+
 type alias Model =
     { painting : Maybe Painting
     , directory : String
+    , currentTodo : Maybe Todo
+    , imageWidget : Maybe ImageWidget
     }
 
 
@@ -159,10 +172,35 @@ type alias Model =
 
 viewImage : String -> Image -> Html msg
 viewImage directory image =
-    div [ class "image" ]
+    span [ class "image" ]
         [ img [ src (Url.Builder.relative [ directory, image.path ] []), width 400 ] []
         ]
 
+
+viewTodoBrief : Todo -> Html Msg
+viewTodoBrief todo =
+    let
+        todoStateStr =
+            todoStateToString todo.state
+
+        icon =
+            case List.length todo.images of
+                0 ->
+                    " "
+
+                _ ->
+                    "🖼 "
+    in
+    div
+        [ onClick (SelectTodo todo)
+        , class ("todo-brief " ++ todoStateStr)
+        ]
+        [ text (todoStateStr ++ ": " ++ icon ++ todo.title) ]
+
+
+viewImageWidget : Html Msg
+viewImageWidget =
+    div [ class "image-widget" ] []
 
 viewTodo : String -> Todo -> Html msg
 viewTodo directory todo =
@@ -171,29 +209,37 @@ viewTodo directory todo =
             todoStateToString todo.state
     in
     div [ class ("todo " ++ todoStateStr) ]
-        (text (todoStateStr ++ ": " ++ todo.title)
+        (h2 [ class "title" ] [ text (todoStateStr ++ ": " ++ todo.title) ]
             :: List.map (viewImage directory) todo.images
         )
 
 
-viewTodoList : String -> List Todo -> Html msg
-viewTodoList directory todos =
-    div [ class "todos" ] (List.map (viewTodo directory) todos)
+viewTodoList : List Todo -> Html Msg
+viewTodoList todos =
+    div [ class "todos" ] (List.map viewTodoBrief todos)
 
 
-viewPainting : String -> Painting -> Html msg
-viewPainting directory painting =
+viewPainting : Painting -> Html Msg
+viewPainting painting =
     div [ class "painting" ]
-        [ text painting.title
-        , viewTodoList directory painting.todos
+        [ viewTodoList painting.todos
         ]
 
 
-view : Model -> Html msg
+viewTitleBar : Painting -> Maybe Todo -> Html Msg
+viewTitleBar painting currentTodo =
+    div [ class "title-bar row" ]
+        [ text (currentTodo |> Maybe.map (\todo -> todo.title) |> Maybe.withDefault painting.title) ]
+
+
+view : Model -> Html Msg
 view model =
     case model.painting of
         Just painting ->
-            viewPainting model.directory painting
+            div []
+                [ viewTitleBar painting model.currentTodo
+                , viewPainting painting
+                ]
 
         Nothing ->
             text "Waiting for painting to load..."
@@ -211,3 +257,6 @@ update msg model =
 
         GotPainting (Err _) ->
             ( model, Cmd.none )
+
+        SelectTodo todo ->
+            ( { model | currentTodo = Just todo }, Cmd.none )
