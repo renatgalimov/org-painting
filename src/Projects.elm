@@ -1,7 +1,7 @@
 module Projects exposing (main)
 
-import Html exposing (Html, a, table, td, text, tr)
-import Html.Attributes exposing (href)
+import Html exposing (Html, a, div, table, td, text, tr)
+import Html.Attributes exposing (class, href)
 import Http exposing (expectJson)
 import Json.Decode exposing (Decoder, field, list, string)
 import TimeTravel.Browser as TimeTravel exposing (defaultConfig)
@@ -49,14 +49,13 @@ viewPaintingLink paintingLink =
         fullPantingLink =
             Url.Builder.absolute [ paintingUrl ] [ Url.Builder.string "json" paintingLink.location ]
     in
-    tr []
-        [ td [] [ a [ href fullPantingLink ] [ text paintingLink.title ] ]
-        ]
+    div [ class "row" ]
+        [ a [ href fullPantingLink ] [ text paintingLink.title ] ]
 
 
 view : Model -> Html msg
 view model =
-    table []
+    div [ class "container" ]
         (List.map
             viewPaintingLink
             model.paintings

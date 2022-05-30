@@ -15088,27 +15088,6 @@ var $savardd$elm_time_travel$TimeTravel$Browser$element = F4(
 				view: options.view
 			});
 	});
-var $elm$core$List$tail = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(xs);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
-var $author$project$Painting$dirname = function (input) {
-	return A2(
-		$elm$core$String$join,
-		'/',
-		$elm$core$List$reverse(
-			A2(
-				$elm$core$Maybe$withDefault,
-				_List_Nil,
-				$elm$core$List$tail(
-					$elm$core$List$reverse(
-						A2($elm$core$String$split, '/', input))))));
-};
 var $elm$core$Maybe$andThen = F2(
 	function (callback, maybeValue) {
 		if (maybeValue.$ === 'Just') {
@@ -15350,9 +15329,9 @@ var $author$project$Painting$getJsonPath = function (urlString) {
 var $author$project$Painting$GotPainting = function (a) {
 	return {$: 'GotPainting', a: a};
 };
-var $author$project$Painting$Painting = F2(
-	function (title, todos) {
-		return {title: title, todos: todos};
+var $author$project$Painting$Painting = F3(
+	function (title, todos, directory) {
+		return {directory: directory, title: title, todos: todos};
 	});
 var $author$project$Painting$Todo = F3(
 	function (title, state, images) {
@@ -15395,14 +15374,38 @@ var $author$project$Painting$decodeTodo = A4(
 				$elm$json$Json$Decode$list($author$project$Painting$decodeImage)),
 				$elm$json$Json$Decode$succeed(_List_Nil)
 			])));
-var $author$project$Painting$decodePainting = A3(
-	$elm$json$Json$Decode$map2,
-	$author$project$Painting$Painting,
-	A2($elm$json$Json$Decode$field, 'title', $elm$json$Json$Decode$string),
-	A2(
-		$elm$json$Json$Decode$field,
-		'todo-list',
-		$elm$json$Json$Decode$list($author$project$Painting$decodeTodo)));
+var $author$project$Painting$decodePainting = function (directory) {
+	return A4(
+		$elm$json$Json$Decode$map3,
+		$author$project$Painting$Painting,
+		A2($elm$json$Json$Decode$field, 'title', $elm$json$Json$Decode$string),
+		A2(
+			$elm$json$Json$Decode$field,
+			'todo-list',
+			$elm$json$Json$Decode$list($author$project$Painting$decodeTodo)),
+		$elm$json$Json$Decode$succeed(directory));
+};
+var $elm$core$List$tail = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(xs);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $author$project$Painting$dirname = function (input) {
+	return A2(
+		$elm$core$String$join,
+		'/',
+		$elm$core$List$reverse(
+			A2(
+				$elm$core$Maybe$withDefault,
+				_List_Nil,
+				$elm$core$List$tail(
+					$elm$core$List$reverse(
+						A2($elm$core$String$split, '/', input))))));
+};
 var $elm$http$Http$BadStatus_ = F2(
 	function (a, b) {
 		return {$: 'BadStatus_', a: a, b: b};
@@ -15654,7 +15657,11 @@ var $elm$http$Http$get = function (r) {
 var $author$project$Painting$getPainting = function (jsonPath) {
 	return $elm$http$Http$get(
 		{
-			expect: A2($elm$http$Http$expectJson, $author$project$Painting$GotPainting, $author$project$Painting$decodePainting),
+			expect: A2(
+				$elm$http$Http$expectJson,
+				$author$project$Painting$GotPainting,
+				$author$project$Painting$decodePainting(
+					$author$project$Painting$dirname(jsonPath))),
 			url: jsonPath
 		});
 };
@@ -15671,13 +15678,7 @@ var $elm$core$Maybe$map = F2(
 var $author$project$Painting$init = function (location) {
 	var jsonPath = $author$project$Painting$getJsonPath(location);
 	return _Utils_Tuple2(
-		{
-			currentTodo: $elm$core$Maybe$Nothing,
-			directory: $author$project$Painting$dirname(
-				A2($elm$core$Maybe$withDefault, '/', jsonPath)),
-			imageWidget: $elm$core$Maybe$Nothing,
-			painting: $elm$core$Maybe$Nothing
-		},
+		{currentTodo: $elm$core$Maybe$Nothing, painting: $elm$core$Maybe$Nothing, widget: $elm$core$Maybe$Nothing},
 		A2(
 			$elm$core$Maybe$withDefault,
 			$elm$core$Platform$Cmd$none,
@@ -15709,6 +15710,102 @@ var $author$project$Painting$update = F2(
 					}),
 				$elm$core$Platform$Cmd$none);
 		}
+	});
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$html$Html$img = _VirtualDom_node('img');
+var $elm$url$Url$Builder$toQueryPair = function (_v0) {
+	var key = _v0.a;
+	var value = _v0.b;
+	return key + ('=' + value);
+};
+var $elm$url$Url$Builder$toQuery = function (parameters) {
+	if (!parameters.b) {
+		return '';
+	} else {
+		return '?' + A2(
+			$elm$core$String$join,
+			'&',
+			A2($elm$core$List$map, $elm$url$Url$Builder$toQueryPair, parameters));
+	}
+};
+var $elm$url$Url$Builder$relative = F2(
+	function (pathSegments, parameters) {
+		return _Utils_ap(
+			A2($elm$core$String$join, '/', pathSegments),
+			$elm$url$Url$Builder$toQuery(parameters));
+	});
+var $elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
+var $author$project$Painting$viewImage = F2(
+	function (directory, image) {
+		return A2(
+			$elm$html$Html$img,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$src(
+					A2(
+						$elm$url$Url$Builder$relative,
+						_List_fromArray(
+							[directory, image.path]),
+						_List_Nil))
+				]),
+			_List_Nil);
+	});
+var $author$project$Painting$viewImageWidget = F3(
+	function (directory, image, images) {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('painting-widget')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('current-image')
+						]),
+					_List_fromArray(
+						[
+							A2($author$project$Painting$viewImage, directory, image)
+						]))
+				]));
+	});
+var $author$project$Painting$viewTitleBar = F2(
+	function (painting, currentTodo) {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('title-bar row')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text(
+					A2(
+						$elm$core$Maybe$withDefault,
+						painting.title,
+						A2(
+							$elm$core$Maybe$map,
+							function (todo) {
+								return todo.title;
+							},
+							currentTodo)))
+				]));
 	});
 var $author$project$Painting$SelectTodo = function (a) {
 	return {$: 'SelectTodo', a: a};
@@ -15752,51 +15849,34 @@ var $author$project$Painting$viewTodoList = function (todos) {
 			]),
 		A2($elm$core$List$map, $author$project$Painting$viewTodoBrief, todos));
 };
-var $author$project$Painting$viewPainting = function (painting) {
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				$elm$html$Html$Attributes$class('painting')
-			]),
-		_List_fromArray(
-			[
-				$author$project$Painting$viewTodoList(painting.todos)
-			]));
-};
-var $author$project$Painting$viewTitleBar = F2(
-	function (painting, currentTodo) {
-		return A2(
-			$elm$html$Html$div,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$class('title-bar row')
-				]),
-			_List_fromArray(
-				[
-					$elm$html$Html$text(
-					A2(
-						$elm$core$Maybe$withDefault,
-						painting.title,
-						A2(
-							$elm$core$Maybe$map,
-							function (todo) {
-								return todo.title;
-							},
-							currentTodo)))
-				]));
-	});
 var $author$project$Painting$view = function (model) {
 	var _v0 = model.painting;
 	if (_v0.$ === 'Just') {
 		var painting = _v0.a;
 		return A2(
 			$elm$html$Html$div,
-			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('container screen')
+				]),
 			_List_fromArray(
 				[
 					A2($author$project$Painting$viewTitleBar, painting, model.currentTodo),
-					$author$project$Painting$viewPainting(painting)
+					function () {
+					var _v1 = model.currentTodo;
+					if (_v1.$ === 'Just') {
+						var todo = _v1.a;
+						var _v2 = $elm$core$List$head(todo.images);
+						if (_v2.$ === 'Just') {
+							var image = _v2.a;
+							return A3($author$project$Painting$viewImageWidget, painting.directory, image, todo.images);
+						} else {
+							return $author$project$Painting$viewTodoList(painting.todos);
+						}
+					} else {
+						return $author$project$Painting$viewTodoList(painting.todos);
+					}
+				}()
 				]));
 	} else {
 		return $elm$html$Html$text('Waiting for painting to load...');
@@ -15815,4 +15895,4 @@ var $author$project$Painting$main = A4(
 		update: $author$project$Painting$update,
 		view: $author$project$Painting$view
 	});
-_Platform_export({'Painting':{'init':$author$project$Painting$main($elm$json$Json$Decode$string)({"versions":{"elm":"0.19.1"},"types":{"message":"TimeTravel.Browser.Msg Painting.Msg","aliases":{"Painting.Image":{"args":[],"type":"{ path : String.String }"},"Painting.Painting":{"args":[],"type":"{ title : String.String, todos : List.List Painting.Todo }"},"Painting.Todo":{"args":[],"type":"{ title : String.String, state : Painting.TodoState, images : List.List Painting.Image }"},"TimeTravel.Internal.Parser.AST.ASTId":{"args":[],"type":"String.String"},"TimeTravel.Internal.Model.Id":{"args":[],"type":"Basics.Int"},"TimeTravel.Internal.Model.IncomingMsg":{"args":[],"type":"{ type_ : String.String, settings : String.String }"}},"unions":{"Painting.Msg":{"args":[],"tags":{"GotPainting":["Result.Result Http.Error Painting.Painting"],"SelectTodo":["Painting.Todo"]}},"TimeTravel.Browser.Msg":{"args":["msg"],"tags":{"DebuggerMsg":["TimeTravel.Internal.Model.Msg"],"UserMsg":["( Maybe.Maybe Basics.Int, msg )"]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Basics.Int"],"BadBody":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"TimeTravel.Internal.Model.Msg":{"args":[],"tags":{"ToggleSync":[],"ToggleExpand":[],"ToggleFilter":["String.String"],"SelectMsg":["TimeTravel.Internal.Model.Id"],"Resync":[],"ToggleLayout":[],"Receive":["TimeTravel.Internal.Model.IncomingMsg"],"ToggleModelDetail":["Basics.Bool"],"ToggleModelTree":["TimeTravel.Internal.Parser.AST.ASTId"],"ToggleMinimize":[],"InputModelFilter":["String.String"],"SelectModelFilter":["TimeTravel.Internal.Parser.AST.ASTId"],"SelectModelFilterWatch":["TimeTravel.Internal.Parser.AST.ASTId"],"StopWatching":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"String.String":{"args":[],"tags":{"String":[]}},"Painting.TodoState":{"args":[],"tags":{"TodoTodo":[],"TodoDone":[]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}}}}})}});}(this));
+_Platform_export({'Painting':{'init':$author$project$Painting$main($elm$json$Json$Decode$string)({"versions":{"elm":"0.19.1"},"types":{"message":"TimeTravel.Browser.Msg Painting.Msg","aliases":{"Painting.Image":{"args":[],"type":"{ path : String.String }"},"Painting.Painting":{"args":[],"type":"{ title : String.String, todos : List.List Painting.Todo, directory : String.String }"},"Painting.Todo":{"args":[],"type":"{ title : String.String, state : Painting.TodoState, images : List.List Painting.Image }"},"TimeTravel.Internal.Parser.AST.ASTId":{"args":[],"type":"String.String"},"TimeTravel.Internal.Model.Id":{"args":[],"type":"Basics.Int"},"TimeTravel.Internal.Model.IncomingMsg":{"args":[],"type":"{ type_ : String.String, settings : String.String }"}},"unions":{"Painting.Msg":{"args":[],"tags":{"GotPainting":["Result.Result Http.Error Painting.Painting"],"SelectTodo":["Painting.Todo"]}},"TimeTravel.Browser.Msg":{"args":["msg"],"tags":{"DebuggerMsg":["TimeTravel.Internal.Model.Msg"],"UserMsg":["( Maybe.Maybe Basics.Int, msg )"]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Basics.Int"],"BadBody":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"TimeTravel.Internal.Model.Msg":{"args":[],"tags":{"ToggleSync":[],"ToggleExpand":[],"ToggleFilter":["String.String"],"SelectMsg":["TimeTravel.Internal.Model.Id"],"Resync":[],"ToggleLayout":[],"Receive":["TimeTravel.Internal.Model.IncomingMsg"],"ToggleModelDetail":["Basics.Bool"],"ToggleModelTree":["TimeTravel.Internal.Parser.AST.ASTId"],"ToggleMinimize":[],"InputModelFilter":["String.String"],"SelectModelFilter":["TimeTravel.Internal.Parser.AST.ASTId"],"SelectModelFilterWatch":["TimeTravel.Internal.Parser.AST.ASTId"],"StopWatching":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"String.String":{"args":[],"tags":{"String":[]}},"Painting.TodoState":{"args":[],"tags":{"TodoTodo":[],"TodoDone":[]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}}}}})}});}(this));

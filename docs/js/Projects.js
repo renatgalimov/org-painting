@@ -15383,7 +15383,6 @@ var $author$project$Projects$update = F2(
 			return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 		}
 	});
-var $elm$html$Html$table = _VirtualDom_node('table');
 var $elm$url$Url$Builder$toQueryPair = function (_v0) {
 	var key = _v0.a;
 	var value = _v0.b;
@@ -15416,8 +15415,6 @@ var $elm$url$Url$Builder$string = F2(
 			$elm$url$Url$percentEncode(key),
 			$elm$url$Url$percentEncode(value));
 	});
-var $elm$html$Html$td = _VirtualDom_node('td');
-var $elm$html$Html$tr = _VirtualDom_node('tr');
 var $author$project$Projects$viewPaintingLink = function (paintingLink) {
 	var fullPantingLink = A2(
 		$elm$url$Url$Builder$absolute,
@@ -15428,32 +15425,32 @@ var $author$project$Projects$viewPaintingLink = function (paintingLink) {
 				A2($elm$url$Url$Builder$string, 'json', paintingLink.location)
 			]));
 	return A2(
-		$elm$html$Html$tr,
-		_List_Nil,
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('row')
+			]),
 		_List_fromArray(
 			[
 				A2(
-				$elm$html$Html$td,
-				_List_Nil,
+				$elm$html$Html$a,
 				_List_fromArray(
 					[
-						A2(
-						$elm$html$Html$a,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$href(fullPantingLink)
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text(paintingLink.title)
-							]))
+						$elm$html$Html$Attributes$href(fullPantingLink)
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(paintingLink.title)
 					]))
 			]));
 };
 var $author$project$Projects$view = function (model) {
 	return A2(
-		$elm$html$Html$table,
-		_List_Nil,
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('container')
+			]),
 		A2($elm$core$List$map, $author$project$Projects$viewPaintingLink, model.paintings));
 };
 var $author$project$Projects$main = A4(

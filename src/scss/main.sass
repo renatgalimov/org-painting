@@ -13,3 +13,35 @@
 @import milligram/src/_Typography
 @import milligram/src/_Image
 @import milligram/src/_Utility
+
+$palette-darkest: #01161e
+$palette-dark: #124559
+$palette-medium: #598392
+$palette-light: #aec3b0
+$palette-lightest: #eff6e0
+
+$color-widget-background: $palette-darkest
+
+html
+  overflow: hidden
+
+html, body, body > div
+  height: 100%
+  margin: 0
+
+.screen
+  height: 100%
+  flex-flow: column
+  display: flex
+
+.painting-widget
+  display: flex
+  background: $color-widget-background
+  flex: 1 1 auto
+  overflow: hidden
+
+  .current-image
+    display: flex
+    justify-content: center
+    img
+      max-height: 100%

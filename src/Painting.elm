@@ -50,12 +50,8 @@ init location =
             getJsonPath location
     in
     ( { painting = Nothing
-      , directory =
-            jsonPath
-                |> Maybe.withDefault "/"
-                |> dirname
       , currentTodo = Nothing
-      , imageWidget = Nothing
+      , widget = Nothing
       }
     , jsonPath
         |> Maybe.map getPainting
@@ -98,6 +94,7 @@ todoStateToString todoState =
 type alias Painting =
     { title : String
     , todos : List Todo
+    , directory : String
     }
 
 
@@ -137,18 +134,19 @@ decodeTodo =
         )
 
 
-decodePainting : Decoder Painting
-decodePainting =
-    Json.Decode.map2 Painting
+decodePainting : String -> Decoder Painting
+decodePainting directory =
+    Json.Decode.map3 Painting
         (field "title" string)
         (field "todo-list" (list decodeTodo))
+        (succeed directory)
 
 
 getPainting : String -> Cmd Msg
 getPainting jsonPath =
     Http.get
         { url = jsonPath
-        , expect = expectJson GotPainting decodePainting
+        , expect = expectJson GotPainting (decodePainting <| dirname jsonPath)
         }
 
 
@@ -158,11 +156,14 @@ type alias ImageWidget =
     }
 
 
+type Widget
+    = WidgetImage ImageWidget
+
+
 type alias Model =
     { painting : Maybe Painting
-    , directory : String
     , currentTodo : Maybe Todo
-    , imageWidget : Maybe ImageWidget
+    , widget : Maybe Widget
     }
 
 
@@ -172,9 +173,7 @@ type alias Model =
 
 viewImage : String -> Image -> Html msg
 viewImage directory image =
-    span [ class "image" ]
-        [ img [ src (Url.Builder.relative [ directory, image.path ] []), width 400 ] []
-        ]
+    img [ src (Url.Builder.relative [ directory, image.path ] []) ] []
 
 
 viewTodoBrief : Todo -> Html Msg
@@ -197,10 +196,6 @@ viewTodoBrief todo =
         ]
         [ text (todoStateStr ++ ": " ++ icon ++ todo.title) ]
 
-
-viewImageWidget : Html Msg
-viewImageWidget =
-    div [ class "image-widget" ] []
 
 viewTodo : String -> Todo -> Html msg
 viewTodo directory todo =
@@ -232,17 +227,44 @@ viewTitleBar painting currentTodo =
         [ text (currentTodo |> Maybe.map (\todo -> todo.title) |> Maybe.withDefault painting.title) ]
 
 
+
+-- Views
+
+
 view : Model -> Html Msg
 view model =
     case model.painting of
         Just painting ->
-            div []
+            div [ class "container screen" ]
                 [ viewTitleBar painting model.currentTodo
-                , viewPainting painting
+                , case model.currentTodo of
+                    Just todo ->
+                        case List.head todo.images of
+                            Just image ->
+                                viewImageWidget painting.directory image todo.images
+
+                            Nothing ->
+                                viewTodoList painting.todos
+
+                    Nothing ->
+                        viewTodoList painting.todos
                 ]
 
         Nothing ->
             text "Waiting for painting to load..."
+
+
+{-| Display a painting widget which takes all the free space on the screen
+-}
+viewImageWidget : String -> Image -> List Image -> Html Msg
+viewImageWidget directory image images =
+    div [ class "painting-widget" ]
+        [ div [ class "current-image" ]
+            [ viewImage
+                directory
+                image
+            ]
+        ]
 
 
 
