@@ -24,13 +24,17 @@
     <!-- Add your site or application content here -->
     <script src="js/vendor/modernizr-3.11.2.min.js"></script>
     <script src="js/Painting.js"></script>
+    <script type='text/javascript' src='js/PortFunnel.js'></script>
+    <script type='text/javascript' src='js/PortFunnel/PictureUrl.js'></script>
     <div id="app">
     </div>
     <script>
-     Elm.Painting.init({
+     const app = Elm.Painting.init({
          node: document.getElementById('app'),
          flags: window.location.href
      });
+
+     PortFunnel.subscribe(app);
     </script>
     <!-- Google Analytics: change UA-XXXXX-Y to be your site's ID. -->
     <!-- <script>

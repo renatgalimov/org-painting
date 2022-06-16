@@ -5231,7 +5231,10 @@ function _Http_track(router, xhr, tracker)
 			size: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
 		}))));
 	});
-}var $elm$core$Basics$False = {$: 'False'};
+}var $author$project$Painting$Process = function (a) {
+	return {$: 'Process', a: a};
+};
+var $elm$core$Basics$False = {$: 'False'};
 var $savardd$elm_time_travel$TimeTravel$Browser$defaultConfig = {startMinimized: false, startToLeft: false};
 var $elm$core$Basics$always = F2(
 	function (a, _v0) {
@@ -15665,6 +15668,8 @@ var $author$project$Painting$getPainting = function (jsonPath) {
 			url: jsonPath
 		});
 };
+var $author$project$Funnels$PictureUrl$initialState = $elm$core$Dict$empty;
+var $author$project$PortFunnels$initialState = {pictureUrl: $author$project$Funnels$PictureUrl$initialState};
 var $elm$core$Maybe$map = F2(
 	function (f, maybe) {
 		if (maybe.$ === 'Just') {
@@ -15678,39 +15683,69 @@ var $elm$core$Maybe$map = F2(
 var $author$project$Painting$init = function (location) {
 	var jsonPath = $author$project$Painting$getJsonPath(location);
 	return _Utils_Tuple2(
-		{currentTodo: $elm$core$Maybe$Nothing, painting: $elm$core$Maybe$Nothing, widget: $elm$core$Maybe$Nothing},
+		{currentTodo: $elm$core$Maybe$Nothing, painting: $elm$core$Maybe$Nothing, state: $author$project$PortFunnels$initialState, widget: $elm$core$Maybe$Nothing},
 		A2(
 			$elm$core$Maybe$withDefault,
 			$elm$core$Platform$Cmd$none,
 			A2($elm$core$Maybe$map, $author$project$Painting$getPainting, jsonPath)));
 };
+var $author$project$PortFunnels$subPort = _Platform_incomingPort('subPort', $elm$json$Json$Decode$value);
+var $author$project$PortFunnels$subscriptions = F2(
+	function (process, model) {
+		return $author$project$PortFunnels$subPort(process);
+	});
 var $elm$core$Debug$toString = _Debug_toString;
-var $author$project$Painting$update = F2(
-	function (msg, model) {
-		if (msg.$ === 'GotPainting') {
-			if (msg.a.$ === 'Ok') {
-				var painting = msg.a.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							painting: $elm$core$Maybe$Just(painting)
-						}),
-					$elm$core$Platform$Cmd$none);
-			} else {
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-			}
+var $author$project$PortFunnels$cmdPort = _Platform_outgoingPort('cmdPort', $elm$core$Basics$identity);
+var $author$project$PortFunnels$getCmdPort = F3(
+	function (tagger, moduleName, useSimulator) {
+		return $author$project$PortFunnels$cmdPort;
+	});
+var $author$project$Painting$getCmdPort = F2(
+	function (moduleName, _v0) {
+		return A3($author$project$PortFunnels$getCmdPort, $author$project$Painting$Process, moduleName, false);
+	});
+var $author$project$PortFunnels$PictureUrlHandler = function (a) {
+	return {$: 'PictureUrlHandler', a: a};
+};
+var $author$project$Painting$pictureUrlHandler = F3(
+	function (_v0, state, model) {
+		return _Utils_Tuple2(
+			_Utils_update(
+				model,
+				{state: state}),
+			$elm$core$Platform$Cmd$none);
+	});
+var $author$project$Painting$handlers = _List_fromArray(
+	[
+		$author$project$PortFunnels$PictureUrlHandler($author$project$Painting$pictureUrlHandler)
+	]);
+var $billstclair$elm_port_funnel$PortFunnel$FunnelSpec = F4(
+	function (accessors, moduleDesc, commander, handler) {
+		return {accessors: accessors, commander: commander, handler: handler, moduleDesc: moduleDesc};
+	});
+var $author$project$PortFunnels$PictureUrlFunnel = function (a) {
+	return {$: 'PictureUrlFunnel', a: a};
+};
+var $billstclair$elm_port_funnel$PortFunnel$emptyCommander = F2(
+	function (_v0, _v1) {
+		return $elm$core$Platform$Cmd$none;
+	});
+var $author$project$Funnels$PictureUrl$commander = $billstclair$elm_port_funnel$PortFunnel$emptyCommander;
+var $author$project$Funnels$PictureUrl$decodeValue = F2(
+	function (decoder, value) {
+		var _v0 = A2($elm$json$Json$Decode$decodeValue, decoder, value);
+		if (_v0.$ === 'Ok') {
+			var x = _v0.a;
+			return $elm$core$Result$Ok(x);
 		} else {
-			var todo = msg.a;
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{
-						currentTodo: $elm$core$Maybe$Just(todo)
-					}),
-				$elm$core$Platform$Cmd$none);
+			var err = _v0.a;
+			return $elm$core$Result$Err(
+				$elm$json$Json$Decode$errorToString(err));
 		}
 	});
+var $author$project$Funnels$PictureUrl$QueryUpdateMessage = function (a) {
+	return {$: 'QueryUpdateMessage', a: a};
+};
 var $elm$core$List$head = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -15720,6 +15755,300 @@ var $elm$core$List$head = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
+var $author$project$Funnels$PictureUrl$listToQueryUpdate = function (items) {
+	return A2(
+		$elm$core$Maybe$withDefault,
+		$elm$json$Json$Decode$fail('Unexpected QueryUpdate'),
+		A2(
+			$elm$core$Maybe$map,
+			$elm$json$Json$Decode$succeed,
+			$elm$core$List$head(items)));
+};
+var $author$project$Funnels$PictureUrl$queryUpdateDecoder = A2(
+	$elm$json$Json$Decode$map,
+	function (queryUpdate) {
+		return $author$project$Funnels$PictureUrl$QueryUpdateMessage(queryUpdate);
+	},
+	A2(
+		$elm$json$Json$Decode$andThen,
+		$author$project$Funnels$PictureUrl$listToQueryUpdate,
+		$elm$json$Json$Decode$keyValuePairs($elm$json$Json$Decode$string)));
+var $author$project$Funnels$PictureUrl$decode = function (_v0) {
+	var tag = _v0.tag;
+	var args = _v0.args;
+	if (tag === 'set') {
+		return A2($author$project$Funnels$PictureUrl$decodeValue, $author$project$Funnels$PictureUrl$queryUpdateDecoder, args);
+	} else {
+		return $elm$core$Result$Err('Unknown QueryUpdate tag: ' + tag);
+	}
+};
+var $billstclair$elm_port_funnel$PortFunnel$GenericMessage = F3(
+	function (moduleName, tag, args) {
+		return {args: args, moduleName: moduleName, tag: tag};
+	});
+var $author$project$Funnels$PictureUrl$moduleName = 'PictureUrl';
+var $author$project$Funnels$PictureUrl$encode = function (message) {
+	var _v1 = message.a;
+	var key = _v1.a;
+	var value = _v1.b;
+	return A3(
+		$billstclair$elm_port_funnel$PortFunnel$GenericMessage,
+		$author$project$Funnels$PictureUrl$moduleName,
+		'set',
+		$elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					key,
+					$elm$json$Json$Encode$string(value))
+				])));
+};
+var $billstclair$elm_port_funnel$PortFunnel$ModuleDesc = function (a) {
+	return {$: 'ModuleDesc', a: a};
+};
+var $billstclair$elm_port_funnel$PortFunnel$ModuleDescRecord = F4(
+	function (moduleName, encoder, decoder, process) {
+		return {decoder: decoder, encoder: encoder, moduleName: moduleName, process: process};
+	});
+var $billstclair$elm_port_funnel$PortFunnel$makeModuleDesc = F4(
+	function (name, encoder, decoder, processor) {
+		return $billstclair$elm_port_funnel$PortFunnel$ModuleDesc(
+			A4($billstclair$elm_port_funnel$PortFunnel$ModuleDescRecord, name, encoder, decoder, processor));
+	});
+var $elm$core$Debug$log = _Debug_log;
+var $author$project$Funnels$PictureUrl$process = F2(
+	function (message, state) {
+		var queryUpdate = message.a;
+		return A2(
+			$elm$core$Debug$log,
+			'PictureUrl process',
+			_Utils_Tuple2(
+				A3($elm$core$Dict$insert, queryUpdate.a, queryUpdate.b, state),
+				_Utils_Tuple0));
+	});
+var $author$project$Funnels$PictureUrl$moduleDesc = A4($billstclair$elm_port_funnel$PortFunnel$makeModuleDesc, $author$project$Funnels$PictureUrl$moduleName, $author$project$Funnels$PictureUrl$encode, $author$project$Funnels$PictureUrl$decode, $author$project$Funnels$PictureUrl$process);
+var $billstclair$elm_port_funnel$PortFunnel$StateAccessors = F2(
+	function (get, set) {
+		return {get: get, set: set};
+	});
+var $author$project$PortFunnels$pictureUrlAccessors = A2(
+	$billstclair$elm_port_funnel$PortFunnel$StateAccessors,
+	function ($) {
+		return $.pictureUrl;
+	},
+	F2(
+		function (substate, state) {
+			return _Utils_update(
+				state,
+				{pictureUrl: substate});
+		}));
+var $author$project$PortFunnels$handlerToFunnel = function (handler) {
+	var pictureUrlHandler = handler.a;
+	return _Utils_Tuple2(
+		$author$project$Funnels$PictureUrl$moduleName,
+		$author$project$PortFunnels$PictureUrlFunnel(
+			A4($billstclair$elm_port_funnel$PortFunnel$FunnelSpec, $author$project$PortFunnels$pictureUrlAccessors, $author$project$Funnels$PictureUrl$moduleDesc, $author$project$Funnels$PictureUrl$commander, pictureUrlHandler)));
+};
+var $author$project$PortFunnels$makeFunnelDict = F2(
+	function (handlers, portGetter) {
+		return _Utils_Tuple2(
+			$elm$core$Dict$fromList(
+				A2($elm$core$List$map, $author$project$PortFunnels$handlerToFunnel, handlers)),
+			portGetter);
+	});
+var $author$project$Painting$funnelDict = A2($author$project$PortFunnels$makeFunnelDict, $author$project$Painting$handlers, $author$project$Painting$getCmdPort);
+var $author$project$Funnels$PictureUrl$makeQueryUpdateMessage = F2(
+	function (key, value) {
+		return $author$project$Funnels$PictureUrl$QueryUpdateMessage(
+			_Utils_Tuple2(key, value));
+	});
+var $billstclair$elm_port_funnel$PortFunnel$encodeGenericMessage = function (message) {
+	return $elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'module',
+				$elm$json$Json$Encode$string(message.moduleName)),
+				_Utils_Tuple2(
+				'tag',
+				$elm$json$Json$Encode$string(message.tag)),
+				_Utils_Tuple2('args', message.args)
+			]));
+};
+var $billstclair$elm_port_funnel$PortFunnel$process = F4(
+	function (accessors, _v0, genericMessage, state) {
+		var moduleDesc = _v0.a;
+		var _v1 = moduleDesc.decoder(genericMessage);
+		if (_v1.$ === 'Err') {
+			var err = _v1.a;
+			return $elm$core$Result$Err(err);
+		} else {
+			var message = _v1.a;
+			var substate = accessors.get(state);
+			var _v2 = A2(moduleDesc.process, message, substate);
+			var substate2 = _v2.a;
+			var response = _v2.b;
+			return $elm$core$Result$Ok(
+				_Utils_Tuple2(
+					A2(accessors.set, substate2, state),
+					response));
+		}
+	});
+var $Janiczek$cmd_extra$Cmd$Extra$withCmds = F2(
+	function (cmds, model) {
+		return _Utils_Tuple2(
+			model,
+			$elm$core$Platform$Cmd$batch(cmds));
+	});
+var $billstclair$elm_port_funnel$PortFunnel$appProcess = F5(
+	function (cmdPort, genericMessage, funnel, state, model) {
+		var _v0 = A4($billstclair$elm_port_funnel$PortFunnel$process, funnel.accessors, funnel.moduleDesc, genericMessage, state);
+		if (_v0.$ === 'Err') {
+			var error = _v0.a;
+			return $elm$core$Result$Err(error);
+		} else {
+			var _v1 = _v0.a;
+			var state2 = _v1.a;
+			var response = _v1.b;
+			var gmToCmdPort = function (gm) {
+				return cmdPort(
+					$billstclair$elm_port_funnel$PortFunnel$encodeGenericMessage(gm));
+			};
+			var cmd = A2(funnel.commander, gmToCmdPort, response);
+			var _v2 = A3(funnel.handler, response, state2, model);
+			var model2 = _v2.a;
+			var cmd2 = _v2.b;
+			return $elm$core$Result$Ok(
+				A2(
+					$Janiczek$cmd_extra$Cmd$Extra$withCmds,
+					_List_fromArray(
+						[cmd, cmd2]),
+					model2));
+		}
+	});
+var $author$project$PortFunnels$appTrampoline = F5(
+	function (portGetter, genericMessage, funnel, state, model) {
+		var appFunnel = funnel.a;
+		return A5(
+			$billstclair$elm_port_funnel$PortFunnel$appProcess,
+			A2(portGetter, $author$project$Funnels$PictureUrl$moduleName, model),
+			genericMessage,
+			appFunnel,
+			state,
+			model);
+	});
+var $billstclair$elm_port_funnel$PortFunnel$decodeValue = F2(
+	function (decoder, value) {
+		var _v0 = A2($elm$json$Json$Decode$decodeValue, decoder, value);
+		if (_v0.$ === 'Ok') {
+			var res = _v0.a;
+			return $elm$core$Result$Ok(res);
+		} else {
+			var err = _v0.a;
+			return $elm$core$Result$Err(
+				$elm$json$Json$Decode$errorToString(err));
+		}
+	});
+var $billstclair$elm_port_funnel$PortFunnel$genericMessageDecoder = A4(
+	$elm$json$Json$Decode$map3,
+	$billstclair$elm_port_funnel$PortFunnel$GenericMessage,
+	A2($elm$json$Json$Decode$field, 'module', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'tag', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'args', $elm$json$Json$Decode$value));
+var $billstclair$elm_port_funnel$PortFunnel$decodeGenericMessage = function (value) {
+	return A2($billstclair$elm_port_funnel$PortFunnel$decodeValue, $billstclair$elm_port_funnel$PortFunnel$genericMessageDecoder, value);
+};
+var $billstclair$elm_port_funnel$PortFunnel$processValue = F5(
+	function (funnels, appTrampoline, value, state, model) {
+		var _v0 = $billstclair$elm_port_funnel$PortFunnel$decodeGenericMessage(value);
+		if (_v0.$ === 'Err') {
+			var error = _v0.a;
+			return $elm$core$Result$Err(error);
+		} else {
+			var genericMessage = _v0.a;
+			var moduleName = genericMessage.moduleName;
+			var _v1 = A2($elm$core$Dict$get, moduleName, funnels);
+			if (_v1.$ === 'Just') {
+				var funnel = _v1.a;
+				var _v2 = A4(appTrampoline, genericMessage, funnel, state, model);
+				if (_v2.$ === 'Err') {
+					var error = _v2.a;
+					return $elm$core$Result$Err(error);
+				} else {
+					var _v3 = _v2.a;
+					var model2 = _v3.a;
+					var cmd = _v3.b;
+					return $elm$core$Result$Ok(
+						_Utils_Tuple2(model2, cmd));
+				}
+			} else {
+				return $elm$core$Result$Err('Unknown moduleName: ' + moduleName);
+			}
+		}
+	});
+var $author$project$PortFunnels$processValue = F4(
+	function (_v0, value, state, model) {
+		var funnelDict = _v0.a;
+		var portGetter = _v0.b;
+		return A5(
+			$billstclair$elm_port_funnel$PortFunnel$processValue,
+			funnelDict,
+			$author$project$PortFunnels$appTrampoline(portGetter),
+			value,
+			state,
+			model);
+	});
+var $billstclair$elm_port_funnel$PortFunnel$messageToValue = F2(
+	function (_v0, message) {
+		var moduleDesc = _v0.a;
+		return $billstclair$elm_port_funnel$PortFunnel$encodeGenericMessage(
+			moduleDesc.encoder(message));
+	});
+var $billstclair$elm_port_funnel$PortFunnel$sendMessage = F3(
+	function (moduleDesc, cmdPort, message) {
+		return cmdPort(
+			A2($billstclair$elm_port_funnel$PortFunnel$messageToValue, moduleDesc, message));
+	});
+var $author$project$Funnels$PictureUrl$send = $billstclair$elm_port_funnel$PortFunnel$sendMessage($author$project$Funnels$PictureUrl$moduleDesc);
+var $author$project$Painting$update = F2(
+	function (msg, model) {
+		switch (msg.$) {
+			case 'GotPainting':
+				if (msg.a.$ === 'Ok') {
+					var painting = msg.a.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								painting: $elm$core$Maybe$Just(painting)
+							}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				}
+			case 'SelectTodo':
+				var todo = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							currentTodo: $elm$core$Maybe$Just(todo)
+						}),
+					A2(
+						$author$project$Funnels$PictureUrl$send,
+						A3($author$project$PortFunnels$getCmdPort, $author$project$Painting$Process, '', false),
+						A2($author$project$Funnels$PictureUrl$makeQueryUpdateMessage, 'todo', todo.title)));
+			default:
+				var value = msg.a;
+				var _v1 = A4($author$project$PortFunnels$processValue, $author$project$Painting$funnelDict, value, model.state, model);
+				if (_v1.$ === 'Err') {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				} else {
+					var res = _v1.a;
+					return res;
+				}
+		}
+	});
 var $elm$html$Html$img = _VirtualDom_node('img');
 var $elm$url$Url$Builder$toQueryPair = function (_v0) {
 	var key = _v0.a;
@@ -15763,6 +16092,19 @@ var $author$project$Painting$viewImage = F2(
 				]),
 			_List_Nil);
 	});
+var $author$project$Painting$viewImageWidgetItem = F2(
+	function (directory, image) {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('painting-widget-item')
+				]),
+			_List_fromArray(
+				[
+					A2($author$project$Painting$viewImage, directory, image)
+				]));
+	});
 var $author$project$Painting$viewImageWidget = F3(
 	function (directory, image, images) {
 		return A2(
@@ -15771,19 +16113,30 @@ var $author$project$Painting$viewImageWidget = F3(
 				[
 					$elm$html$Html$Attributes$class('painting-widget')
 				]),
-			_List_fromArray(
-				[
-					A2(
+			A2(
+				$elm$core$List$cons,
+				A2(
 					$elm$html$Html$div,
 					_List_fromArray(
 						[
-							$elm$html$Html$Attributes$class('current-image')
+							$elm$html$Html$Attributes$class('pusher')
 						]),
+					_List_Nil),
+				_Utils_ap(
+					A2(
+						$elm$core$List$map,
+						$author$project$Painting$viewImageWidgetItem(directory),
+						images),
 					_List_fromArray(
 						[
-							A2($author$project$Painting$viewImage, directory, image)
-						]))
-				]));
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('pusher')
+								]),
+							_List_Nil)
+						]))));
 	});
 var $author$project$Painting$viewTitleBar = F2(
 	function (painting, currentTodo) {
@@ -15791,7 +16144,7 @@ var $author$project$Painting$viewTitleBar = F2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('title-bar row')
+					$elm$html$Html$Attributes$class('title-bar')
 				]),
 			_List_fromArray(
 				[
@@ -15889,10 +16242,8 @@ var $author$project$Painting$main = A4(
 	$savardd$elm_time_travel$TimeTravel$Browser$defaultConfig,
 	{
 		init: $author$project$Painting$init,
-		subscriptions: function (_v0) {
-			return $elm$core$Platform$Sub$none;
-		},
+		subscriptions: $author$project$PortFunnels$subscriptions($author$project$Painting$Process),
 		update: $author$project$Painting$update,
 		view: $author$project$Painting$view
 	});
-_Platform_export({'Painting':{'init':$author$project$Painting$main($elm$json$Json$Decode$string)({"versions":{"elm":"0.19.1"},"types":{"message":"TimeTravel.Browser.Msg Painting.Msg","aliases":{"Painting.Image":{"args":[],"type":"{ path : String.String }"},"Painting.Painting":{"args":[],"type":"{ title : String.String, todos : List.List Painting.Todo, directory : String.String }"},"Painting.Todo":{"args":[],"type":"{ title : String.String, state : Painting.TodoState, images : List.List Painting.Image }"},"TimeTravel.Internal.Parser.AST.ASTId":{"args":[],"type":"String.String"},"TimeTravel.Internal.Model.Id":{"args":[],"type":"Basics.Int"},"TimeTravel.Internal.Model.IncomingMsg":{"args":[],"type":"{ type_ : String.String, settings : String.String }"}},"unions":{"Painting.Msg":{"args":[],"tags":{"GotPainting":["Result.Result Http.Error Painting.Painting"],"SelectTodo":["Painting.Todo"]}},"TimeTravel.Browser.Msg":{"args":["msg"],"tags":{"DebuggerMsg":["TimeTravel.Internal.Model.Msg"],"UserMsg":["( Maybe.Maybe Basics.Int, msg )"]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Basics.Int"],"BadBody":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"TimeTravel.Internal.Model.Msg":{"args":[],"tags":{"ToggleSync":[],"ToggleExpand":[],"ToggleFilter":["String.String"],"SelectMsg":["TimeTravel.Internal.Model.Id"],"Resync":[],"ToggleLayout":[],"Receive":["TimeTravel.Internal.Model.IncomingMsg"],"ToggleModelDetail":["Basics.Bool"],"ToggleModelTree":["TimeTravel.Internal.Parser.AST.ASTId"],"ToggleMinimize":[],"InputModelFilter":["String.String"],"SelectModelFilter":["TimeTravel.Internal.Parser.AST.ASTId"],"SelectModelFilterWatch":["TimeTravel.Internal.Parser.AST.ASTId"],"StopWatching":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"String.String":{"args":[],"tags":{"String":[]}},"Painting.TodoState":{"args":[],"tags":{"TodoTodo":[],"TodoDone":[]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}}}}})}});}(this));
+_Platform_export({'Painting':{'init':$author$project$Painting$main($elm$json$Json$Decode$string)({"versions":{"elm":"0.19.1"},"types":{"message":"TimeTravel.Browser.Msg Painting.Msg","aliases":{"Painting.Image":{"args":[],"type":"{ path : String.String }"},"Painting.Painting":{"args":[],"type":"{ title : String.String, todos : List.List Painting.Todo, directory : String.String }"},"Painting.Todo":{"args":[],"type":"{ title : String.String, state : Painting.TodoState, images : List.List Painting.Image }"},"TimeTravel.Internal.Parser.AST.ASTId":{"args":[],"type":"String.String"},"TimeTravel.Internal.Model.Id":{"args":[],"type":"Basics.Int"},"TimeTravel.Internal.Model.IncomingMsg":{"args":[],"type":"{ type_ : String.String, settings : String.String }"}},"unions":{"Painting.Msg":{"args":[],"tags":{"Process":["Json.Encode.Value"],"GotPainting":["Result.Result Http.Error Painting.Painting"],"SelectTodo":["Painting.Todo"]}},"TimeTravel.Browser.Msg":{"args":["msg"],"tags":{"DebuggerMsg":["TimeTravel.Internal.Model.Msg"],"UserMsg":["( Maybe.Maybe Basics.Int, msg )"]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Basics.Int"],"BadBody":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"TimeTravel.Internal.Model.Msg":{"args":[],"tags":{"ToggleSync":[],"ToggleExpand":[],"ToggleFilter":["String.String"],"SelectMsg":["TimeTravel.Internal.Model.Id"],"Resync":[],"ToggleLayout":[],"Receive":["TimeTravel.Internal.Model.IncomingMsg"],"ToggleModelDetail":["Basics.Bool"],"ToggleModelTree":["TimeTravel.Internal.Parser.AST.ASTId"],"ToggleMinimize":[],"InputModelFilter":["String.String"],"SelectModelFilter":["TimeTravel.Internal.Parser.AST.ASTId"],"SelectModelFilterWatch":["TimeTravel.Internal.Parser.AST.ASTId"],"StopWatching":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"String.String":{"args":[],"tags":{"String":[]}},"Painting.TodoState":{"args":[],"tags":{"TodoTodo":[],"TodoDone":[]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}}}}})}});}(this));

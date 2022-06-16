@@ -1,13 +1,16 @@
-module Painting exposing (main, viewPainting)
+module Painting exposing (main)
 
+import Funnels.PictureUrl
 import Html exposing (Html, div, h1, h2, img, span, text)
 import Html.Attributes exposing (class, src, width)
 import Html.Events exposing (onClick)
 import Http exposing (expectJson)
 import Json.Decode exposing (Decoder, fail, field, list, oneOf, string, succeed)
+import Json.Encode as JE exposing (Value)
 import List.Extra exposing (find)
 import Maybe
 import Maybe.Extra
+import PortFunnels exposing (FunnelDict, Handler(..), State)
 import TimeTravel.Browser as TimeTravel exposing (defaultConfig)
 import Url
 import Url.Builder
@@ -22,7 +25,7 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = PortFunnels.subscriptions Process
         }
 
 
@@ -49,7 +52,8 @@ init location =
         jsonPath =
             getJsonPath location
     in
-    ( { painting = Nothing
+    ( { state = PortFunnels.initialState
+      , painting = Nothing
       , currentTodo = Nothing
       , widget = Nothing
       }
@@ -60,7 +64,8 @@ init location =
 
 
 type Msg
-    = GotPainting (Result Http.Error Painting)
+    = Process Value
+    | GotPainting (Result Http.Error Painting)
     | SelectTodo Todo
 
 
@@ -161,7 +166,8 @@ type Widget
 
 
 type alias Model =
-    { painting : Maybe Painting
+    { state : State
+    , painting : Maybe Painting
     , currentTodo : Maybe Todo
     , widget : Maybe Widget
     }
@@ -197,18 +203,6 @@ viewTodoBrief todo =
         [ text (todoStateStr ++ ": " ++ icon ++ todo.title) ]
 
 
-viewTodo : String -> Todo -> Html msg
-viewTodo directory todo =
-    let
-        todoStateStr =
-            todoStateToString todo.state
-    in
-    div [ class ("todo " ++ todoStateStr) ]
-        (h2 [ class "title" ] [ text (todoStateStr ++ ": " ++ todo.title) ]
-            :: List.map (viewImage directory) todo.images
-        )
-
-
 viewTodoList : List Todo -> Html Msg
 viewTodoList todos =
     div [ class "todos" ] (List.map viewTodoBrief todos)
@@ -217,13 +211,13 @@ viewTodoList todos =
 viewPainting : Painting -> Html Msg
 viewPainting painting =
     div [ class "painting" ]
-        [ viewTodoList painting.todos
+        [ div [ class "row" ] [ viewTodoList painting.todos ]
         ]
 
 
 viewTitleBar : Painting -> Maybe Todo -> Html Msg
 viewTitleBar painting currentTodo =
-    div [ class "title-bar row" ]
+    div [ class "title-bar" ]
         [ text (currentTodo |> Maybe.map (\todo -> todo.title) |> Maybe.withDefault painting.title) ]
 
 
@@ -254,17 +248,47 @@ view model =
             text "Waiting for painting to load..."
 
 
+viewImageWidgetItem : String -> Image -> Html Msg
+viewImageWidgetItem directory image =
+    div [ class "painting-widget-item" ]
+        [ viewImage directory image
+        ]
+
+
 {-| Display a painting widget which takes all the free space on the screen
 -}
 viewImageWidget : String -> Image -> List Image -> Html Msg
 viewImageWidget directory image images =
     div [ class "painting-widget" ]
-        [ div [ class "current-image" ]
-            [ viewImage
-                directory
-                image
-            ]
-        ]
+        (div [ class "pusher" ] []
+            :: List.map
+                (viewImageWidgetItem directory)
+                images
+            ++ [ div [ class "pusher" ] [] ]
+        )
+
+
+pictureUrlHandler : Funnels.PictureUrl.Response -> State -> Model -> ( Model, Cmd Msg )
+pictureUrlHandler _ state model =
+    ( { model | state = state }, Cmd.none )
+
+
+handlers : List (Handler Model Msg)
+handlers =
+    [ PictureUrlHandler pictureUrlHandler
+    ]
+
+
+{-| Get a possibly simulated output port.
+-}
+getCmdPort : String -> Model -> (Value -> Cmd Msg)
+getCmdPort moduleName _ =
+    PortFunnels.getCmdPort Process moduleName False
+
+
+funnelDict : FunnelDict Model Msg
+funnelDict =
+    PortFunnels.makeFunnelDict handlers getCmdPort
 
 
 
@@ -281,4 +305,16 @@ update msg model =
             ( model, Cmd.none )
 
         SelectTodo todo ->
-            ( { model | currentTodo = Just todo }, Cmd.none )
+            ( { model | currentTodo = Just todo }, Funnels.PictureUrl.send (PortFunnels.getCmdPort Process "" False) <| Funnels.PictureUrl.makeQueryUpdateMessage "todo" todo.title )
+
+        Process value ->
+            case
+                PortFunnels.processValue funnelDict value model.state model
+            of
+                Err _ ->
+                    ( model
+                    , Cmd.none
+                    )
+
+                Ok res ->
+                    res

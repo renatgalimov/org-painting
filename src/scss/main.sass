@@ -28,6 +28,10 @@ html
 html, body, body > div
   height: 100%
   margin: 0
+  color: white
+
+body
+  background: $palette-dark
 
 .screen
   height: 100%
@@ -40,8 +44,15 @@ html, body, body > div
   flex: 1 1 auto
   overflow: hidden
 
-  .current-image
+  .pusher
+    flex: 1 1 auto
+    display: flex
+
+  .painting-widget-item
     display: flex
     justify-content: center
+
     img
+      display: flex
       max-height: 100%
+      object-fit: contain
