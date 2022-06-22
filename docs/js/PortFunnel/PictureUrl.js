@@ -29,7 +29,16 @@
 
     function dispatcher(tag, args) {
         var searchParams = new URLSearchParams(window.location.search)
-        searchParams.set("todo", args.todo);
+
+        for (key in args) {
+            var value = args[key]
+            if (value) {
+                searchParams.set(key, value);
+            } else {
+                searchParams.delete(key)
+            }
+        }
+
         var newRelativePathQuery = window.location.pathname + '?' + searchParams.toString();
         history.pushState(null, '', newRelativePathQuery);
 

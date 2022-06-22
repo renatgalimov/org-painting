@@ -1,8 +1,8 @@
 module Painting exposing (main)
 
 import Funnels.PictureUrl
-import Html exposing (Html, div, h1, h2, img, span, text)
-import Html.Attributes exposing (class, src, width)
+import Html exposing (Html, a, div, h1, h2, img, span, text)
+import Html.Attributes exposing (class, href, src, width)
 import Html.Events exposing (onClick)
 import Http exposing (expectJson)
 import Json.Decode exposing (Decoder, fail, field, list, oneOf, string, succeed)
@@ -67,6 +67,7 @@ type Msg
     = Process Value
     | GotPainting (Result Http.Error Painting)
     | SelectTodo Todo
+    | ClearTodo
 
 
 type alias Image =
@@ -215,10 +216,57 @@ viewPainting painting =
         ]
 
 
+titleBarLogo : Html Msg
+titleBarLogo =
+    span [ class "logo" ]
+        [ text "Ink and Zett"
+        ]
+
+
+titleBarIndex : Html Msg
+titleBarIndex =
+    span [ class "breadcrumb" ]
+        [ a [ href "/index.html" ]
+            [ text "Paintings"
+            ]
+        ]
+
+
+titleBarPainting : Painting -> Maybe Todo -> Html Msg
+titleBarPainting painting currentTodo =
+    span [ class "breadcrumb" ]
+        [ case currentTodo of
+            Just _ ->
+                a [ onClick ClearTodo ] [ text painting.title ]
+
+            Nothing ->
+                text painting.title
+        ]
+
+
+emptyHtml : Html Msg
+emptyHtml =
+    text ""
+
+
+titleBarTodo : Maybe Todo -> Html Msg
+titleBarTodo currentTodo =
+    case currentTodo of
+        Just todo ->
+            span [ class "breadcrumb" ] [ text todo.title ]
+
+        Nothing ->
+            emptyHtml
+
+
 viewTitleBar : Painting -> Maybe Todo -> Html Msg
 viewTitleBar painting currentTodo =
     div [ class "title-bar" ]
-        [ text (currentTodo |> Maybe.map (\todo -> todo.title) |> Maybe.withDefault painting.title) ]
+        [ titleBarLogo
+        , titleBarIndex
+        , titleBarPainting painting currentTodo
+        , titleBarTodo currentTodo
+        ]
 
 
 
@@ -286,6 +334,11 @@ getCmdPort moduleName _ =
     PortFunnels.getCmdPort Process moduleName False
 
 
+getCmd : Value -> Cmd Msg
+getCmd =
+    PortFunnels.getCmdPort Process "PictureUrl" False
+
+
 funnelDict : FunnelDict Model Msg
 funnelDict =
     PortFunnels.makeFunnelDict handlers getCmdPort
@@ -305,7 +358,10 @@ update msg model =
             ( model, Cmd.none )
 
         SelectTodo todo ->
-            ( { model | currentTodo = Just todo }, Funnels.PictureUrl.send (PortFunnels.getCmdPort Process "" False) <| Funnels.PictureUrl.makeQueryUpdateMessage "todo" todo.title )
+            ( { model | currentTodo = Just todo }, Funnels.PictureUrl.send getCmd <| Funnels.PictureUrl.makeQueryUpdateMessage "todo" todo.title )
+
+        ClearTodo ->
+            ( { model | currentTodo = Nothing }, Funnels.PictureUrl.send getCmd <| Funnels.PictureUrl.makeQueryUpdateMessage "todo" "" )
 
         Process value ->
             case
