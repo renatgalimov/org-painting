@@ -8,9 +8,14 @@ function copyJs() {
         .pipe(dest('docs/js/'));
 }
 
+function copySvg() {
+    return src('./src/img/**/*.svg', {base: "src/img/"})
+        .pipe(dest('docs/img/'));
+}
+
 function buildStyles() {
     return src('./src/scss/*.sass', {base: "src/scss/"})
-        .pipe(sass({outputStyle: 'compressed', includePaths: "node_modules"}).on('error', sass.logError))
+        .pipe(sass({outputStyle: 'expanded', includePaths: "node_modules"}).on('error', sass.logError))
     .pipe(dest('docs/css/'));
 };
 
@@ -28,6 +33,10 @@ function runWebserver() {
         .pipe(webserver({}));
 }
 
+function watchSvg() {
+    watch('src/img/**/*.svg', copySvg);
+}
+
 function watchJs() {
     watch('src/js/**/*.js', copyJs);
 }
@@ -43,4 +52,4 @@ function watchElm() {
 exports.js = copyJs;
 exports.css = buildStyles;
 exports.elm = runElm;
-exports.default = series(runElm, parallel(runWebserver, watchElm, watchCss, watchJs));
+exports.default = series(runElm, parallel(runWebserver, watchElm, watchCss, watchJs, watchSvg));
