@@ -2,7 +2,6 @@
   @import milligram/src/_Color
 @import milligram/src/_Base
 @import milligram/src/_Blockquote
-@import milligram/src/_Button
 @import milligram/src/_Code
 @import milligram/src/_Divider
 @import milligram/src/_Form
@@ -84,3 +83,61 @@ body
       display: flex
       max-height: 100%
       object-fit: contain
+
+.sidebar-and-workzone
+  display: flex
+  height: 100%
+
+.sidebar
+  display: flex
+  flex-direction: column
+  background: darken($color-widget-background, 10%)
+  width: 8rem
+  padding: 1rem 1rem
+  height: 100%
+  transition: 0.3s
+
+  .todos
+    display: flex
+    flex-direction: column
+    flex-grow: 1
+
+  .top-level-link
+    display: flex
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    flex-grow: 0
+
+  .sidebar-toggle
+    width: 2rem
+    height: 2rem
+    border-radius: 100%
+    margin-top: 1rem
+
+  &.expanded
+    width: 30%
+    padding: 1rem 2rem
+
+  .todo-brief
+    align-items: center
+    display: flex
+    height: 4rem
+    overflow: hidden
+    text-overflow: ellipsis
+    vertical-align: middle
+    white-space: nowrap
+/* .sidebar
+/*   height: 100%
+/*   width: 80%
+/*   //position: fixed
+/*     z-index: 1
+/*   top: 0
+/*   left: 0
+/*   background-color: #111
+/*   overflow-x: hidden
+/*   padding-top: 60px
+/*
+
+/*   &.expanded
+/*     width: 80%

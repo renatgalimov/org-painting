@@ -1,0 +1,11 @@
+* Design
+:PROPERTIES:
+:DIR:      ~/projects/org-painting/README_FILES
+:END:
+
+#+name: breadcrumbs
+#+begin_src plantuml :file widget.png
+@startsalt
+{}
+@endsalt
+#+end_src

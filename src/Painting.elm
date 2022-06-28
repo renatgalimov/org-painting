@@ -1,13 +1,12 @@
 module Painting exposing (main)
 
 import Funnels.PictureUrl
-import Html exposing (Html, a, div, h1, h2, img, span, text)
-import Html.Attributes exposing (class, href, src, width)
+import Html exposing (Html, a, button, div, img, span, text)
+import Html.Attributes exposing (class, classList, href, src, title)
 import Html.Events exposing (onClick)
 import Http exposing (expectJson)
-import Json.Decode exposing (Decoder, fail, field, list, oneOf, string, succeed)
-import Json.Encode as JE exposing (Value)
-import List.Extra exposing (find)
+import Json.Decode exposing (Decoder, fail, field, list, nullable, oneOf, string, succeed)
+import Json.Encode exposing (Value)
 import Maybe
 import Maybe.Extra
 import PortFunnels exposing (FunnelDict, Handler(..), State)
@@ -55,7 +54,8 @@ init location =
     ( { state = PortFunnels.initialState
       , painting = Nothing
       , currentTodo = Nothing
-      , widget = Nothing
+      , error = Nothing
+      , sidebar = sidebarModel
       }
     , jsonPath
         |> Maybe.map getPainting
@@ -65,6 +65,7 @@ init location =
 
 type Msg
     = Process Value
+    | ToggleSidebar
     | GotPainting (Result Http.Error Painting)
     | SelectTodo Todo
     | ClearTodo
@@ -72,6 +73,7 @@ type Msg
 
 type alias Image =
     { path : String
+    , caption : Maybe String
     }
 
 
@@ -100,13 +102,16 @@ todoStateToString todoState =
 type alias Painting =
     { title : String
     , todos : List Todo
+    , images : List Image
     , directory : String
     }
 
 
 decodeImage : Decoder Image
 decodeImage =
-    Json.Decode.map Image (field "path" string)
+    Json.Decode.map2 Image
+        (field "path" string)
+        (field "caption" (nullable string))
 
 
 todoStateFromString : String -> Decoder TodoState
@@ -142,9 +147,10 @@ decodeTodo =
 
 decodePainting : String -> Decoder Painting
 decodePainting directory =
-    Json.Decode.map3 Painting
+    Json.Decode.map4 Painting
         (field "title" string)
         (field "todo-list" (list decodeTodo))
+        (field "image-list" (list decodeImage))
         (succeed directory)
 
 
@@ -156,21 +162,19 @@ getPainting jsonPath =
         }
 
 
-type alias ImageWidget =
-    { currentImage : Image
-    , allImages : List Image
-    }
-
-
-type Widget
-    = WidgetImage ImageWidget
-
-
 type alias Model =
     { state : State
     , painting : Maybe Painting
     , currentTodo : Maybe Todo
-    , widget : Maybe Widget
+    , error : Maybe String
+    , sidebar : SidebarModel
+    }
+
+
+setSidebar : SidebarModel -> Model -> Model
+setSidebar newSidebar model =
+    { model
+        | sidebar = newSidebar
     }
 
 
@@ -200,6 +204,7 @@ viewTodoBrief todo =
     div
         [ onClick (SelectTodo todo)
         , class ("todo-brief " ++ todoStateStr)
+        , title todo.title
         ]
         [ text (todoStateStr ++ ": " ++ icon ++ todo.title) ]
 
@@ -209,22 +214,15 @@ viewTodoList todos =
     div [ class "todos" ] (List.map viewTodoBrief todos)
 
 
-viewPainting : Painting -> Html Msg
-viewPainting painting =
-    div [ class "painting" ]
-        [ div [ class "row" ] [ viewTodoList painting.todos ]
-        ]
-
-
-titleBarLogo : Html Msg
-titleBarLogo =
+viewTitleBarLogo : Html Msg
+viewTitleBarLogo =
     span [ class "logo" ]
         [ text "Ink and Zett"
         ]
 
 
-titleBarIndex : Html Msg
-titleBarIndex =
+viewTitleBarIndex : Html Msg
+viewTitleBarIndex =
     span [ class "breadcrumb" ]
         [ a [ href "/index.html" ]
             [ text "Paintings"
@@ -232,8 +230,8 @@ titleBarIndex =
         ]
 
 
-titleBarPainting : Painting -> Maybe Todo -> Html Msg
-titleBarPainting painting currentTodo =
+viewTitleBarPainting : Painting -> Maybe Todo -> Html Msg
+viewTitleBarPainting painting currentTodo =
     span [ class "breadcrumb" ]
         [ case currentTodo of
             Just _ ->
@@ -249,8 +247,8 @@ emptyHtml =
     text ""
 
 
-titleBarTodo : Maybe Todo -> Html Msg
-titleBarTodo currentTodo =
+viewTitleBarTodo : Maybe Todo -> Html Msg
+viewTitleBarTodo currentTodo =
     case currentTodo of
         Just todo ->
             span [ class "breadcrumb" ] [ text todo.title ]
@@ -262,10 +260,47 @@ titleBarTodo currentTodo =
 viewTitleBar : Painting -> Maybe Todo -> Html Msg
 viewTitleBar painting currentTodo =
     div [ class "title-bar" ]
-        [ titleBarLogo
-        , titleBarIndex
-        , titleBarPainting painting currentTodo
-        , titleBarTodo currentTodo
+        [ viewTitleBarLogo
+        , viewTitleBarIndex
+        , viewTitleBarPainting painting currentTodo
+        , viewTitleBarTodo currentTodo
+        ]
+
+
+type alias SidebarModel =
+    { expanded : Bool
+    }
+
+
+sidebarModel : SidebarModel
+sidebarModel =
+    { expanded = False }
+
+
+sidebarToggleExpanded : SidebarModel -> SidebarModel
+sidebarToggleExpanded sidebar =
+    { sidebar | expanded = not sidebar.expanded }
+
+
+viewSidebar : Model -> Html Msg
+viewSidebar model =
+    div [ classList [ ( "sidebar", True ), ( "expanded", model.sidebar.expanded ) ] ]
+        [ a [ class "top-level-link" ] [ text "Top level" ]
+        , case model.painting of
+            Just painting ->
+                viewTodoList painting.todos
+
+            Nothing ->
+                emptyHtml
+        , button [ class "sidebar-toggle", onClick ToggleSidebar ]
+            [ text
+                (if model.sidebar.expanded then
+                    "<"
+
+                 else
+                    ">"
+                )
+            ]
         ]
 
 
@@ -279,21 +314,18 @@ view model =
         Just painting ->
             div [ class "container screen" ]
                 [ viewTitleBar painting model.currentTodo
-                , case model.currentTodo of
-                    Just todo ->
-                        case List.head todo.images of
-                            Just image ->
-                                viewImageWidget painting.directory image todo.images
-
-                            Nothing ->
-                                viewTodoList painting.todos
-
-                    Nothing ->
-                        viewTodoList painting.todos
+                , div [ class "sidebar-and-workzone" ]
+                    [ viewSidebar model
+                    ]
                 ]
 
         Nothing ->
-            text "Waiting for painting to load..."
+            case model.error of
+                Just error ->
+                    text error
+
+                Nothing ->
+                    text "Waiting for painting to load..."
 
 
 viewImageWidgetItem : String -> Image -> Html Msg
@@ -306,7 +338,7 @@ viewImageWidgetItem directory image =
 {-| Display a painting widget which takes all the free space on the screen
 -}
 viewImageWidget : String -> Image -> List Image -> Html Msg
-viewImageWidget directory image images =
+viewImageWidget directory _ images =
     div [ class "painting-widget" ]
         (div [ class "pusher" ] []
             :: List.map
@@ -351,11 +383,23 @@ funnelDict =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ToggleSidebar ->
+            ( { model | sidebar = sidebarToggleExpanded model.sidebar }, Cmd.none )
+
         GotPainting (Ok painting) ->
             ( { model | painting = Just painting }, Cmd.none )
 
-        GotPainting (Err _) ->
-            ( model, Cmd.none )
+        GotPainting (Err error) ->
+            let
+                errorMsg =
+                    case error of
+                        Http.BadBody badBodyError ->
+                            badBodyError
+
+                        _ ->
+                            Debug.toString error
+            in
+            ( { model | error = Just errorMsg }, Cmd.none )
 
         SelectTodo todo ->
             ( { model | currentTodo = Just todo }, Funnels.PictureUrl.send getCmd <| Funnels.PictureUrl.makeQueryUpdateMessage "todo" todo.title )

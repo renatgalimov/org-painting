@@ -1,1 +1,20 @@
-{"paintings":[{"title":"In memory of Quorthon","path":"roam/20220519090651-in_memory_of_quorthon.json"},{"title":"Randy Rhoads painting","path":"roam/20220507222731-randy_rhoads_painting.json"}]}
+{
+  "paintings": [
+    {
+      "title": "Painting of a Knight",
+      "path": "roam/20220626150101-painting_of_a_knight.json"
+    },
+    {
+      "title": "Portrait of Taisiya",
+      "path": "roam/20220625164545-portrait_of_taisiya.json"
+    },
+    {
+      "title": "In memory of Quorthon",
+      "path": "roam/20220519090651-in_memory_of_quorthon.json"
+    },
+    {
+      "title": "Randy Rhoads painting",
+      "path": "roam/20220507222731-randy_rhoads_painting.json"
+    }
+  ]
+}
