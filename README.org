@@ -3,9 +3,53 @@
 :DIR:      ~/projects/org-painting/README_FILES
 :END:
 
-#+name: breadcrumbs
-#+begin_src plantuml :file widget.png
-@startsalt
-{}
-@endsalt
+#+name: todo-workzone
+#+begin_src plantuml :noweb yes :file todo-workzone.png
+  @startsalt
+  {
+    <<breadcrumbs-painting>>
+  }
+  @endsalt
 #+end_src
+
+#+RESULTS: todo-workzone
+[[file:todo-workzone.png]]
+
+#+name: breadcrumbs
+#+begin_src plantuml :noweb yes
+**Ink and Zett**
+#+end_src
+
+
+#+name: breadcrumbs-painting
+#+begin_src plantuml :file breadcrumbs-painting.png :noweb yes
+  <<breadcrumbs>> <&caret-right> Painting name
+#+end_src
+
+#+caption: Breadcrumbs for a painting
+#+begin_src plantuml :noweb yes :file breadcrumbs-painting.png
+  @startsalt
+  {
+    <<breadcrumbs-painting>>
+  }
+  @endsalt
+#+end_src
+
+#+RESULTS:
+[[file:breadcrumbs-painting.png]]
+
+
+* Overlay widget
+
+#+begin_src plantuml :file overlay-widget.png
+  @startsalt
+  {
+  <img:https://via.placeholder.com/160x80.png>
+  ----
+  {[Toggle] | ^Scketch...^}
+  }
+  @endsalt
+#+end_src
+
+#+RESULTS:
+[[file:overlay-widget.png]]
